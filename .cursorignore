@@ -1,0 +1,18 @@
+# Development notes (not for AI context)
+notes/
+
+TODO.md
+IDEAS.md
+PLANNING.md
+
+# Virtual environment and dependencies
+venv/
+__pycache__/
+*.pyc
+
+# Data files (if large)
+data/raw/*
+data/processed/*
+*.csv
+*.xlsx
+

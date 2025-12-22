@@ -168,3 +168,9 @@ data/exports/*
 # Logs
 logs/*.log
 !logs/.gitkeep
+
+# Development notes
+notes/
+
+# Historical data (can be large)
+data/historical/

@@ -15,12 +15,15 @@ python-dateutil>=2.8.2
 # sqlite3 comes with Python, but you might want:
 # sqlalchemy>=2.0.0  # For database ORM
 
-# Data visualization (optional)
-# matplotlib>=3.7.0
-# seaborn>=0.12.0
+# Data visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
 
 # Environment variables (for API keys)
 python-dotenv>=1.0.0
+
+# Web framework for dashboard
+flask>=3.0.0
 
 # Jupyter notebook support (optional)
 # jupyter>=1.0.0

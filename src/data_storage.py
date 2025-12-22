@@ -10,6 +10,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+# Import formatter for standardization
+try:
+    from .data_formatter import standardize_data
+except ImportError:
+    try:
+        from src.data_formatter import standardize_data
+    except ImportError:
+        # Fallback if import fails
+        def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
+            return data
+
 
 def ensure_directory_exists(directory: str) -> None:
     """Create directory if it doesn't exist."""
@@ -45,6 +56,7 @@ def save_raw_data(data: Dict[str, Any], output_dir: str = "data/raw") -> str:
 def save_daily_data(data: Dict[str, Any], output_dir: str = "data/processed") -> str:
     """
     Save daily data with date-based filename.
+    Data is standardized before saving to ensure consistent format.
     
     Args:
         data: The data dictionary to save
@@ -55,14 +67,17 @@ def save_daily_data(data: Dict[str, Any], output_dir: str = "data/processed") ->
     """
     ensure_directory_exists(output_dir)
     
+    # Standardize data structure before saving
+    standardized_data = standardize_data(data)
+    
     # Create filename with date only
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
     filename = f"aud_daily_{date_str}.json"
     filepath = os.path.join(output_dir, filename)
     
     # Save to JSON
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(standardized_data, f, indent=2, ensure_ascii=False)
     
     print(f"Daily data saved to: {filepath}")
     return filepath

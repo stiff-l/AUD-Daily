@@ -74,15 +74,32 @@ This installs:
 
 ### Step 5: Configure Settings
 
-1. Copy the example settings file:
+1. Copy the example settings file (if you haven't already):
    ```bash
    cp config/settings.example.py config/settings.py
    ```
 
-2. Edit `config/settings.py` and add your API keys (if needed):
-   - For now, you can leave them as placeholders
-   - The currency and crypto APIs in the example code work without keys
-   - You'll need API keys for commodity data sources
+2. Edit `config/settings.py` and add your API keys:
+
+   **Current Status:**
+   - ✅ **Currency API** - Already working! No API key needed (uses exchangerate-api.com)
+   - ✅ **Crypto API** - Already working! No API key needed (uses CoinGecko)
+   - ⚠️ **Commodity API** - Needs API key for full functionality
+
+   **To Enable Commodity Prices (Gold, Silver, Copper):**
+   
+   1. Visit [metals-api.com](https://metals-api.com) and sign up for a free account
+   2. Get your free API key from the dashboard
+   3. Open `config/settings.py` in a text editor
+   4. Find the line: `METALS_API_KEY = "your_metals_api_key_here"`
+   5. Replace it with: `METALS_API_KEY = "your_actual_api_key_here"`
+   
+   **Example:**
+   ```python
+   METALS_API_KEY = "abc123xyz456"  # Your actual API key
+   ```
+   
+   **Note:** The project will still work without the commodity API key, but commodity prices will show as `null`. Currency and crypto data will work perfectly without any API keys!
 
 ### Step 6: Test the Setup
 
@@ -143,8 +160,44 @@ To automatically collect data every day:
 
 1. **Customize data sources**: Edit `src/data_collector.py` to use different APIs
 2. **Add analysis**: Create Jupyter notebooks in `notebooks/` to analyze trends
-3. **Create visualizations**: Use matplotlib or seaborn to create charts
+3. **Create visualizations**: Generate charts and graphs from your data (see below)
 4. **Set up alerts**: Add code to notify you of significant changes
+
+### Creating Visualizations
+
+Visualization libraries are already installed! You can create charts from your data:
+
+**Generate a comprehensive dashboard:**
+```bash
+python scripts/generate_charts.py --type dashboard
+```
+
+**Generate specific chart types:**
+```bash
+# Currency trends
+python scripts/generate_charts.py --type currencies
+
+# Cryptocurrency trends
+python scripts/generate_charts.py --type crypto
+
+# Commodity trends
+python scripts/generate_charts.py --type commodities
+
+# Compare specific assets
+python scripts/generate_charts.py --type comparison --assets USD EUR BTC ETH
+```
+
+**Limit to recent days:**
+```bash
+python scripts/generate_charts.py --type dashboard --days 30
+```
+
+**Save to specific location:**
+```bash
+python scripts/generate_charts.py --type dashboard --output my_chart.png
+```
+
+Charts are saved to `data/exports/` by default. See `docs/VISUALIZATION_GUIDE.md` for more details.
 
 ## Getting Help
 
