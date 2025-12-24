@@ -1,10 +1,8 @@
 """
 Data Collector Module
 
-This module handles fetching data from various APIs for:
-- Currency exchange rates (USD, EUR, CNY)
-- Commodity prices (Gold, Silver, Copper)
-- Cryptocurrency prices (BTC, ETH, SOL, ZCASH)
+This module handles fetching currency exchange rates from APIs.
+Tracks: USD, EUR, CNY, SGD against AUD.
 """
 
 import requests
@@ -26,7 +24,7 @@ except ImportError:
 
 def fetch_currency_rates() -> Dict[str, Any]:
     """
-    Fetch AUD exchange rates against major currencies.
+    Fetch AUD exchange rates against major currencies (USD, EUR, CNY, SGD).
     
     Returns:
         Dictionary with currency rates and metadata
@@ -36,14 +34,14 @@ def fetch_currency_rates() -> Dict[str, Any]:
         "currencies": {}
     }
     
-    # Example: Using a free API (exchangerate-api.com)
+    # Using a free API (exchangerate-api.com)
     try:
         response = requests.get("https://api.exchangerate-api.com/v4/latest/AUD", timeout=10)
         response.raise_for_status()
         rates = response.json()
         
-        # Extract the currencies we care about
-        for currency in ["USD", "EUR", "CNY"]:
+        # Extract the currencies we care about: USD, EUR, CNY, SGD
+        for currency in ["USD", "EUR", "CNY", "SGD"]:
             if currency in rates.get("rates", {}):
                 data["currencies"][currency] = {
                     "rate": rates["rates"][currency],
@@ -57,7 +55,7 @@ def fetch_currency_rates() -> Dict[str, Any]:
     return data
 
 
-def fetch_commodity_prices() -> Dict[str, Any]:
+def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "USD") -> Optional[float]:
     """
     Fetch commodity prices (Gold, Silver, Copper).
     
@@ -244,52 +242,6 @@ def fetch_commodity_prices() -> Dict[str, Any]:
     return data
 
 
-def fetch_crypto_prices() -> Dict[str, Any]:
-    """
-    Fetch cryptocurrency prices (BTC, ETH, SOL, ZCASH).
-    
-    Returns:
-        Dictionary with cryptocurrency prices and metadata
-    """
-    data = {
-        "timestamp": datetime.now().isoformat(),
-        "cryptocurrencies": {}
-    }
-    
-    # Example: Using CoinGecko free API
-    try:
-        # Get prices for multiple coins at once
-        coin_ids = ["bitcoin", "ethereum", "solana", "zcash"]
-        ids = ",".join(coin_ids)
-        
-        response = requests.get(
-            f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=aud",
-            timeout=10
-        )
-        response.raise_for_status()
-        prices = response.json()
-        
-        # Map coin IDs to our symbols
-        coin_map = {
-            "bitcoin": "BTC",
-            "ethereum": "ETH",
-            "solana": "SOL",
-            "zcash": "ZCASH"
-        }
-        
-        for coin_id, symbol in coin_map.items():
-            if coin_id in prices and "aud" in prices[coin_id]:
-                data["cryptocurrencies"][symbol] = {
-                    "price_aud": prices[coin_id]["aud"],
-                    "currency": "AUD"
-                }
-    except Exception as e:
-        print(f"Error fetching crypto prices: {e}")
-        data["error"] = str(e)
-    
-    return data
-
-
 def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "USD") -> Optional[float]:
     """
     Fetch historical exchange rate for a specific date.
@@ -400,25 +352,17 @@ def collect_historical_quarterly_data(start_year: int = 1966, end_year: Optional
 
 def collect_all_data() -> Dict[str, Any]:
     """
-    Collect all data: currencies, commodities, and cryptocurrencies.
+    Collect currency data only (USD, EUR, CNY, SGD).
     
     Returns:
-        Complete dataset with all tracked assets
+        Dataset with currency rates
     """
     print("Collecting currency rates...")
     currencies = fetch_currency_rates()
     
-    print("Collecting commodity prices...")
-    commodities = fetch_commodity_prices()
-    
-    print("Collecting cryptocurrency prices...")
-    cryptos = fetch_crypto_prices()
-    
     return {
         "collection_date": datetime.now().isoformat(),
-        "currencies": currencies,
-        "commodities": commodities,
-        "cryptocurrencies": cryptos
+        "currencies": currencies
     }
 
 

@@ -1,7 +1,7 @@
 """
 Data Storage Module
 
-Handles saving and loading data to/from files.
+Handles saving and loading data to/from files and tables.
 """
 
 import json
@@ -20,6 +20,15 @@ except ImportError:
         # Fallback if import fails
         def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
             return data
+
+# Import currency history for table storage
+try:
+    from .currency_history import upsert_currency_history_row
+except ImportError:
+    try:
+        from src.currency_history import upsert_currency_history_row
+    except ImportError:
+        upsert_currency_history_row = None
 
 
 def ensure_directory_exists(directory: str) -> None:
@@ -127,4 +136,62 @@ def load_latest_data(data_dir: str = "data/processed") -> Optional[Dict[str, Any
     # Get the most recent file
     latest_file = max(json_files, key=os.path.getctime)
     return load_data(str(latest_file))
+
+
+def save_to_currency_table(data: Dict[str, Any], csv_path: str = "data/processed/currency_daily.csv") -> str:
+    """
+    Save currency data to the daily table (CSV).
+    Each day is a new row with timestamps for daily tracking.
+    
+    Args:
+        data: Standardized data dictionary with currencies
+        csv_path: Path to the daily currency CSV file
+        
+    Returns:
+        Path to the saved CSV file
+    """
+    if not upsert_currency_history_row:
+        print("Warning: currency_history module not available. Skipping table save.")
+        return csv_path
+    
+    # Standardize data if needed
+    standardized_data = standardize_data(data)
+    
+    # Extract date
+    date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
+    try:
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+    except:
+        date_obj = datetime.now()
+    
+    # Extract timestamp
+    timestamp_str = standardized_data.get("timestamp")
+    if timestamp_str:
+        try:
+            timestamp_obj = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        except:
+            timestamp_obj = datetime.now()
+    else:
+        timestamp_obj = datetime.now()
+    
+    # Extract currency rates
+    currencies = standardized_data.get("currencies", {})
+    usd_rate = currencies.get("USD", {}).get("rate") if currencies.get("USD") else None
+    eur_rate = currencies.get("EUR", {}).get("rate") if currencies.get("EUR") else None
+    cny_rate = currencies.get("CNY", {}).get("rate") if currencies.get("CNY") else None
+    sgd_rate = currencies.get("SGD", {}).get("rate") if currencies.get("SGD") else None
+    
+    # Save to table
+    upsert_currency_history_row(
+        csv_path=csv_path,
+        date=date_obj,
+        usd_rate=usd_rate,
+        eur_rate=eur_rate,
+        cny_rate=cny_rate,
+        sgd_rate=sgd_rate,
+        timestamp=timestamp_obj
+    )
+    
+    print(f"Currency data saved to table: {csv_path}")
+    return csv_path
 

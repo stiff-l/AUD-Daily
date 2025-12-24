@@ -12,6 +12,7 @@ import json
 def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Standardize data structure to ensure consistent format.
+    Only handles currencies: USD, EUR, CNY, SGD
     
     Args:
         data: Raw data dictionary from collector
@@ -22,9 +23,7 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     standardized = {
         "date": None,
         "timestamp": datetime.now().isoformat(),
-        "currencies": {},
-        "commodities": {},
-        "cryptocurrencies": {}
+        "currencies": {}
     }
     
     # Extract date from collection_date or use current date
@@ -37,7 +36,7 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     else:
         standardized["date"] = datetime.now().strftime("%Y-%m-%d")
     
-    # Standardize currencies
+    # Standardize currencies (USD, EUR, CNY, SGD)
     if "currencies" in data:
         currencies_data = data["currencies"]
         if isinstance(currencies_data, dict) and "currencies" in currencies_data:
@@ -48,34 +47,6 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
                 "rate": info.get("rate"),
                 "base": info.get("base", "AUD"),
                 "date": info.get("date", standardized["date"])
-            }
-    
-    # Standardize commodities
-    if "commodities" in data:
-        commodities_data = data["commodities"]
-        if isinstance(commodities_data, dict) and "commodities" in commodities_data:
-            commodities_data = commodities_data["commodities"]
-        
-        for symbol, info in commodities_data.items():
-            standardized["commodities"][symbol] = {
-                "price_usd": info.get("price"),
-                "price_aud": info.get("price_aud"),
-                "currency": info.get("currency", "USD"),
-                "unit": info.get("unit", "oz" if symbol in ["GOLD", "SILVER"] else "lb"),
-                "source": info.get("source"),
-                "note": info.get("note")
-            }
-    
-    # Standardize cryptocurrencies
-    if "cryptocurrencies" in data:
-        cryptos_data = data["cryptocurrencies"]
-        if isinstance(cryptos_data, dict) and "cryptocurrencies" in cryptos_data:
-            cryptos_data = cryptos_data["cryptocurrencies"]
-        
-        for symbol, info in cryptos_data.items():
-            standardized["cryptocurrencies"][symbol] = {
-                "price_aud": info.get("price_aud"),
-                "currency": info.get("currency", "AUD")
             }
     
     return standardized
@@ -111,37 +82,6 @@ def format_table(data: Dict[str, Any], show_all: bool = True) -> str:
             output.append(f"{symbol:<12} {rate_str:<15} {date_str:<12}")
         output.append("")
     
-    # Commodities section
-    if data.get("commodities"):
-        output.append("COMMODITIES")
-        output.append("-" * 70)
-        output.append(f"{'Commodity':<12} {'Price (USD)':<15} {'Price (AUD)':<15} {'Unit':<8}")
-        output.append("-" * 70)
-        for symbol, info in sorted(data["commodities"].items()):
-            price_usd = info.get("price_usd")
-            price_aud = info.get("price_aud")
-            unit = info.get("unit", "N/A")
-            
-            price_usd_str = f"${price_usd:,.2f}" if price_usd else "N/A"
-            price_aud_str = f"${price_aud:,.2f}" if price_aud else "N/A"
-            
-            output.append(f"{symbol:<12} {price_usd_str:<15} {price_aud_str:<15} {unit:<8}")
-            if info.get("note"):
-                output.append(f"  └─ {info['note']}")
-        output.append("")
-    
-    # Cryptocurrencies section
-    if data.get("cryptocurrencies"):
-        output.append("CRYPTOCURRENCIES")
-        output.append("-" * 70)
-        output.append(f"{'Crypto':<12} {'Price (AUD)':<20}")
-        output.append("-" * 70)
-        for symbol, info in sorted(data["cryptocurrencies"].items()):
-            price_aud = info.get("price_aud")
-            price_str = f"${price_aud:,.2f}" if price_aud else "N/A"
-            output.append(f"{symbol:<12} {price_str:<20}")
-        output.append("")
-    
     output.append("=" * 70)
     return "\n".join(output)
 
@@ -166,24 +106,6 @@ def format_summary(data: Dict[str, Any]) -> str:
             rate = info.get("rate")
             if rate:
                 output.append(f"   {symbol}: {rate:.4f}")
-    
-    # Commodities summary
-    if data.get("commodities"):
-        output.append("\n🏭 Commodities:")
-        for symbol, info in sorted(data["commodities"].items()):
-            price_aud = info.get("price_aud")
-            if price_aud:
-                output.append(f"   {symbol}: ${price_aud:,.2f} AUD/{info.get('unit', '')}")
-            else:
-                output.append(f"   {symbol}: Not available")
-    
-    # Crypto summary
-    if data.get("cryptocurrencies"):
-        output.append("\n₿ Cryptocurrencies:")
-        for symbol, info in sorted(data["cryptocurrencies"].items()):
-            price_aud = info.get("price_aud")
-            if price_aud:
-                output.append(f"   {symbol}: ${price_aud:,.2f} AUD")
     
     output.append("")
     return "\n".join(output)
@@ -214,26 +136,14 @@ def format_csv(data: Dict[str, Any]) -> str:
         CSV formatted string
     """
     lines = []
-    lines.append("Type,Asset,Value,Currency,Unit,Date")
+    lines.append("Type,Asset,Value,Currency,Base,Date")
     
     # Currencies
     for symbol, info in sorted(data.get("currencies", {}).items()):
         rate = info.get("rate", "")
         date = info.get("date", data.get("date", ""))
-        lines.append(f"Currency,{symbol},{rate},AUD,rate,{date}")
-    
-    # Commodities
-    for symbol, info in sorted(data.get("commodities", {}).items()):
-        price_aud = info.get("price_aud", "")
-        unit = info.get("unit", "")
-        date = data.get("date", "")
-        lines.append(f"Commodity,{symbol},{price_aud},AUD,{unit},{date}")
-    
-    # Cryptocurrencies
-    for symbol, info in sorted(data.get("cryptocurrencies", {}).items()):
-        price_aud = info.get("price_aud", "")
-        date = data.get("date", "")
-        lines.append(f"Cryptocurrency,{symbol},{price_aud},AUD,coin,{date}")
+        base = info.get("base", "AUD")
+        lines.append(f"Currency,{symbol},{rate},{symbol},{base},{date}")
     
     return "\n".join(lines)
 

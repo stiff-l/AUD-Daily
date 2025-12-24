@@ -1,8 +1,9 @@
 """
-Metals history utilities.
+Currency history utilities.
 
-Handles loading, validation, cleaning, and updating metals history data stored
-in CSV form (`data/processed/metals_history.csv`).
+Handles loading, validation, cleaning, and updating currency history data stored
+in CSV form. Supports both daily CSV (`data/processed/currency_daily.csv`) and
+historical CSV (`data/historical/currency_history.csv`).
 """
 
 from __future__ import annotations
@@ -16,10 +17,10 @@ import pandas as pd
 # Expected CSV columns
 REQUIRED_COLUMNS: Tuple[str, ...] = (
     "date",
-    "gold_aud",
-    "silver_aud",
-    "platinum_aud",
-    "palladium_aud",
+    "usd_rate",
+    "eur_rate",
+    "cny_rate",
+    "sgd_rate",
     "timestamp",
 )
 
@@ -31,32 +32,32 @@ def _coerce_numeric(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     return df
 
 
-def load_metals_history_csv(csv_path: str = "data/processed/metals_history.csv") -> pd.DataFrame:
+def load_currency_history_csv(csv_path: str = "data/processed/currency_daily.csv") -> pd.DataFrame:
     """
-    Load and validate metals history CSV.
+    Load and validate currency history CSV.
 
     Returns a cleaned DataFrame with:
     - date: datetime64[ns]
-    - numeric price columns in AUD
+    - numeric rate columns (AUD base)
     - timestamp: datetime64[ns]
     - sorted by date ascending
     - duplicates on date resolved by keeping the most recent timestamp
     """
     if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Metals history CSV not found: {csv_path}")
+        raise FileNotFoundError(f"Currency history CSV not found: {csv_path}")
 
     df = pd.read_csv(csv_path)
 
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing required columns in metals CSV: {missing}")
+        raise ValueError(f"Missing required columns in currency CSV: {missing}")
 
     # Normalize dates and timestamps
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
-    price_cols = ["gold_aud", "silver_aud", "platinum_aud", "palladium_aud"]
-    df = _coerce_numeric(df, price_cols)
+    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate"]
+    df = _coerce_numeric(df, rate_cols)
 
     # Drop rows with invalid dates
     df = df.dropna(subset=["date"])
@@ -64,30 +65,30 @@ def load_metals_history_csv(csv_path: str = "data/processed/metals_history.csv")
     # Deduplicate by date, keeping the most recent timestamp
     df = df.sort_values(["date", "timestamp"]).drop_duplicates(subset=["date"], keep="last")
 
-    # Basic sanity: prices should be positive
-    for col in price_cols:
+    # Basic sanity: rates should be positive
+    for col in rate_cols:
         df.loc[df[col] <= 0, col] = pd.NA
 
     df = df.sort_values("date").reset_index(drop=True)
     return df
 
 
-def validate_metals_history(csv_path: str = "data/processed/metals_history.csv") -> Dict[str, List[str]]:
+def validate_currency_history(csv_path: str = "data/processed/currency_daily.csv") -> Dict[str, List[str]]:
     """
-    Validate the metals history CSV and return any issues found.
+    Validate the currency history CSV and return any issues found.
     """
     issues: Dict[str, List[str]] = {"errors": [], "warnings": []}
 
     try:
-        df = load_metals_history_csv(csv_path)
+        df = load_currency_history_csv(csv_path)
     except Exception as exc:  # pylint: disable=broad-except
         issues["errors"].append(str(exc))
         return issues
 
     # Check for missing values
-    price_cols = ["gold_aud", "silver_aud", "platinum_aud", "palladium_aud"]
-    missing_mask = df[price_cols].isna()
-    for col in price_cols:
+    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate"]
+    missing_mask = df[rate_cols].isna()
+    for col in rate_cols:
         missing_rows = df.index[missing_mask[col]].tolist()
         if missing_rows:
             issues["warnings"].append(f"{col} has missing/invalid values at rows: {missing_rows}")
@@ -106,37 +107,51 @@ def validate_metals_history(csv_path: str = "data/processed/metals_history.csv")
     return issues
 
 
-def upsert_metals_history_row(
+def upsert_currency_history_row(
     csv_path: str,
     date: datetime,
-    gold_aud: float,
-    silver_aud: float,
-    platinum_aud: float,
-    palladium_aud: float,
+    usd_rate: float | None = None,
+    eur_rate: float | None = None,
+    cny_rate: float | None = None,
+    sgd_rate: float | None = None,
     timestamp: datetime | None = None,
 ) -> pd.DataFrame:
     """
-    Insert or update a metals row for a given date, returning the new DataFrame.
+    Insert or update a currency row for a given date, returning the new DataFrame.
     """
     timestamp = timestamp or datetime.utcnow()
 
     # Load existing (or create new DataFrame)
     if os.path.exists(csv_path):
-        df = load_metals_history_csv(csv_path)
+        df = load_currency_history_csv(csv_path)
     else:
         df = pd.DataFrame(columns=REQUIRED_COLUMNS)
 
     new_row = {
         "date": pd.to_datetime(date).date(),
-        "gold_aud": float(gold_aud),
-        "silver_aud": float(silver_aud),
-        "platinum_aud": float(platinum_aud),
-        "palladium_aud": float(palladium_aud),
+        "usd_rate": float(usd_rate) if usd_rate is not None else pd.NA,
+        "eur_rate": float(eur_rate) if eur_rate is not None else pd.NA,
+        "cny_rate": float(cny_rate) if cny_rate is not None else pd.NA,
+        "sgd_rate": float(sgd_rate) if sgd_rate is not None else pd.NA,
         "timestamp": pd.to_datetime(timestamp),
     }
 
-    # Append and deduplicate by date (keep newest timestamp)
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    # Create new row DataFrame with compatible dtypes
+    # If df is empty, create with explicit structure; otherwise match existing dtypes
+    if df.empty:
+        new_df = pd.DataFrame([new_row])
+        df = new_df
+    else:
+        # Create new DataFrame with same dtypes as existing df to avoid concat warnings
+        new_df = pd.DataFrame([new_row])
+        # Align dtypes to match existing DataFrame
+        for col in df.columns:
+            if col in new_df.columns and col in df.columns:
+                new_df[col] = new_df[col].astype(df[col].dtype, errors="ignore")
+        
+        # Append and deduplicate by date (keep newest timestamp)
+        # Use pd.concat with sort=False to avoid FutureWarning
+        df = pd.concat([df, new_df], ignore_index=True, sort=False)
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df = df.sort_values(["date", "timestamp"]).drop_duplicates(subset=["date"], keep="last")
