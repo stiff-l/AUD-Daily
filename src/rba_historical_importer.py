@@ -57,7 +57,7 @@ class RBAForexImporter:
         "https://www.rba.gov.au/statistics/tables/xls-hist/2023-current.xls",
     ]
     
-    def __init__(self, db_path: str = "data/historical/rba_forex_data.db", download_dir: str = "data/rba_downloads"):
+    def __init__(self, db_path: str = "data/historical/rba_forex_data.db", download_dir: str = "data/historical/rba_downloads"):
         """
         Initialize the importer
         

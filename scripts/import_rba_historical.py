@@ -37,10 +37,10 @@ def main():
     try:
         # Initialize importer
         # Database will be stored in data/historical/rba_forex_data.db
-        # Downloaded Excel files will be stored in data/rba_downloads/
+        # Downloaded Excel files will be stored in data/historical/rba_downloads/
         importer = RBAForexImporter(
             db_path="data/historical/rba_forex_data.db",
-            download_dir="data/rba_downloads"
+            download_dir="data/historical/rba_downloads"
         )
         
         # Run import

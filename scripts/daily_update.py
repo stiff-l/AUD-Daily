@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from src.data_collector import collect_all_data
 from src.data_storage import save_raw_data, save_daily_data, save_to_currency_table
 from src.data_formatter import standardize_data
+from scripts.generate_forex_svg import generate_forex_svg
 
 
 def main():
@@ -41,6 +42,18 @@ def main():
     
     # Save to currency history table (CSV)
     save_to_currency_table(standardized_data)
+    
+    # Generate forex SVG from template
+    try:
+        print("\nGenerating forex SVG...")
+        template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'forex_template.svg')
+        if os.path.exists(template_path):
+            generate_forex_svg(template_path, output_dir="data/forex_data", standardized_data=standardized_data)
+        else:
+            print(f"Warning: Template not found at {template_path}, skipping SVG generation.")
+    except Exception as e:
+        print(f"Warning: Error generating SVG: {e}")
+        # Don't fail the entire update if SVG generation fails
     
     print("\n" + "=" * 50)
     print("Data collection complete!")
