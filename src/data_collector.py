@@ -2,7 +2,7 @@
 Data Collector Module
 
 This module handles fetching currency exchange rates from APIs.
-Tracks: USD, EUR, CNY, SGD against AUD.
+Tracks: USD, EUR, CNY, SGD, JPY against AUD.
 """
 
 import requests
@@ -24,7 +24,7 @@ except ImportError:
 
 def fetch_currency_rates() -> Dict[str, Any]:
     """
-    Fetch AUD exchange rates against major currencies (USD, EUR, CNY, SGD).
+    Fetch AUD exchange rates against major currencies (USD, EUR, CNY, SGD, JPY).
     
     Returns:
         Dictionary with currency rates and metadata
@@ -40,8 +40,8 @@ def fetch_currency_rates() -> Dict[str, Any]:
         response.raise_for_status()
         rates = response.json()
         
-        # Extract the currencies we care about: USD, EUR, CNY, SGD
-        for currency in ["USD", "EUR", "CNY", "SGD"]:
+        # Extract the currencies we care about: USD, EUR, CNY, SGD, JPY
+        for currency in ["USD", "EUR", "CNY", "SGD", "JPY"]:
             if currency in rates.get("rates", {}):
                 data["currencies"][currency] = {
                     "rate": rates["rates"][currency],
@@ -352,7 +352,7 @@ def collect_historical_quarterly_data(start_year: int = 1966, end_year: Optional
 
 def collect_all_data() -> Dict[str, Any]:
     """
-    Collect currency data only (USD, EUR, CNY, SGD).
+    Collect currency data only (USD, EUR, CNY, SGD, JPY).
     
     Returns:
         Dataset with currency rates

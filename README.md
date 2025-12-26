@@ -1,7 +1,7 @@
 # AUD Daily Tracker
 
 A project to track the Australian Dollar (AUD) daily against:
-- **Major Currencies**: USD, EUR, CNY, SDG
+- **Major Currencies**: USD, EUR, CNY, SGD, JPY
 First ship the above. 
 
 In the future we will integrate:
@@ -78,7 +78,7 @@ AUD-Daily/
 ## Data Sources
 
 - **Currency rates**: exchangerate-api.com (free, no API key required)
-  - Tracks: USD, EUR, CNY, SGD against AUD
+  - Tracks: USD, EUR, CNY, SGD, JPY against AUD
 
 ## Scheduling
 
@@ -118,7 +118,7 @@ The system saves data in multiple formats:
 
 Each day's data includes:
 - Date and timestamp
-- Exchange rates for USD, EUR, CNY, SGD
+- Exchange rates for USD, EUR, CNY, SGD, JPY
 - Base currency (AUD)
 
 ## Documentation

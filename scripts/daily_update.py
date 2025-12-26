@@ -25,7 +25,7 @@ def main():
     """Main function to run daily data collection."""
     print("=" * 50)
     print("AUD Daily Tracker - Currency Data Collection")
-    print("Tracking: USD, EUR, CNY, SGD")
+    print("Tracking: USD, EUR, CNY, SGD, JPY")
     print("=" * 50)
     
     # Collect currency data

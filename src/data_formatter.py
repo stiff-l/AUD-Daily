@@ -12,7 +12,7 @@ import json
 def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Standardize data structure to ensure consistent format.
-    Only handles currencies: USD, EUR, CNY, SGD
+    Only handles currencies: USD, EUR, CNY, SGD, JPY
     
     Args:
         data: Raw data dictionary from collector
