@@ -21,6 +21,7 @@ REQUIRED_COLUMNS: Tuple[str, ...] = (
     "eur_rate",
     "cny_rate",
     "sgd_rate",
+    "jpy_rate",
     "timestamp",
 )
 
@@ -48,15 +49,21 @@ def load_currency_history_csv(csv_path: str = "data/processed/currency_daily.csv
 
     df = pd.read_csv(csv_path)
 
-    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+    # Check for required columns (excluding optional ones like jpy_rate for backward compatibility)
+    required_core = ["date", "usd_rate", "eur_rate", "cny_rate", "sgd_rate", "timestamp"]
+    missing = [c for c in required_core if c not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns in currency CSV: {missing}")
+    
+    # Add jpy_rate column if it doesn't exist (for backward compatibility)
+    if "jpy_rate" not in df.columns:
+        df["jpy_rate"] = pd.NA
 
     # Normalize dates and timestamps
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
-    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate"]
+    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate", "jpy_rate"]
     df = _coerce_numeric(df, rate_cols)
 
     # Drop rows with invalid dates
@@ -86,7 +93,7 @@ def validate_currency_history(csv_path: str = "data/processed/currency_daily.csv
         return issues
 
     # Check for missing values
-    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate"]
+    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate", "jpy_rate"]
     missing_mask = df[rate_cols].isna()
     for col in rate_cols:
         missing_rows = df.index[missing_mask[col]].tolist()
@@ -114,6 +121,7 @@ def upsert_currency_history_row(
     eur_rate: float | None = None,
     cny_rate: float | None = None,
     sgd_rate: float | None = None,
+    jpy_rate: float | None = None,
     timestamp: datetime | None = None,
 ) -> pd.DataFrame:
     """
@@ -133,6 +141,7 @@ def upsert_currency_history_row(
         "eur_rate": float(eur_rate) if eur_rate is not None else pd.NA,
         "cny_rate": float(cny_rate) if cny_rate is not None else pd.NA,
         "sgd_rate": float(sgd_rate) if sgd_rate is not None else pd.NA,
+        "jpy_rate": float(jpy_rate) if jpy_rate is not None else pd.NA,
         "timestamp": pd.to_datetime(timestamp),
     }
 
@@ -157,6 +166,14 @@ def upsert_currency_history_row(
     df = df.sort_values(["date", "timestamp"]).drop_duplicates(subset=["date"], keep="last")
     df = df.sort_values("date").reset_index(drop=True)
 
+    # Ensure all required columns are present and in the correct order
+    for col in REQUIRED_COLUMNS:
+        if col not in df.columns:
+            df[col] = pd.NA
+    
+    # Reorder columns to match REQUIRED_COLUMNS
+    df = df[list(REQUIRED_COLUMNS)]
+    
     # Save back to CSV
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     df.to_csv(csv_path, index=False)

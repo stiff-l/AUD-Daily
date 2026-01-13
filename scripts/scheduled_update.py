@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from src.data_collector import collect_all_data
 from src.data_storage import save_raw_data, save_daily_data, save_to_currency_table
 from src.data_formatter import standardize_data
-from scripts.generate_forex_svg import generate_forex_svg
+from scripts.generate_forex_html import generate_forex_html
 
 
 def get_cairns_time():
@@ -83,17 +83,17 @@ def main():
         print("Saving to currency history table...")
         save_to_currency_table(standardized_data)
         
-        # Generate forex SVG from template
+        # Generate forex HTML from template (data comes from API)
         try:
-            print("\nGenerating forex SVG...")
-            template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'forex_template.svg')
+            print("\nGenerating forex HTML...")
+            template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'forex_template.html')
             if os.path.exists(template_path):
-                generate_forex_svg(template_path, output_dir="data/forex_data", standardized_data=standardized_data)
+                generate_forex_html(template_path, output_dir="data/forex_data", standardized_data=standardized_data)
             else:
-                print(f"Warning: Template not found at {template_path}, skipping SVG generation.")
+                print(f"Warning: Template not found at {template_path}, skipping HTML generation.")
         except Exception as e:
-            print(f"Warning: Error generating SVG: {e}")
-            # Don't fail the entire update if SVG generation fails
+            print(f"Warning: Error generating HTML: {e}")
+            # Don't fail the entire update if HTML generation fails
         
         print("\n" + "=" * 60)
         print("Scheduled update complete!")

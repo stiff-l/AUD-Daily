@@ -50,19 +50,19 @@
 <path transform="matrix(.75,0,0,.75,0,0)" d="M0 0H1080V1080H0Z" fill="#634bff"/>
 </g>
 <g clip-path="url(#clip_2)">
-<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 179.25 400.03428)" font-size="18" font-family="Montserrat" font-weight="bold">0.6700</text>
+<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 179.25 440.03428)" font-size="28" font-family="Montserrat" font-weight="bold">0.671</text>
 </g>
 <g clip-path="url(#clip_3)">
-<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 276 400.03428)" font-size="18" font-family="Montserrat" font-weight="bold">0.5690</text>
+<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 276 440.03428)" font-size="28" font-family="Montserrat" font-weight="bold">0.575</text>
 </g>
 <g clip-path="url(#clip_4)">
-<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 372.75 400.03428)" font-size="18" font-family="Montserrat" font-weight="bold">104.5300</text>
+<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 372.75 440.03428)" font-size="28" font-family="Montserrat" font-weight="bold">105.980</text>
 </g>
 <g clip-path="url(#clip_5)">
-<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 469.5 400.03428)" font-size="18" font-family="Montserrat" font-weight="bold">4.7000</text>
+<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 469.5 440.03428)" font-size="28" font-family="Montserrat" font-weight="bold">4.680</text>
 </g>
 <g clip-path="url(#clip_6)">
-<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 566.25 400.03428)" font-size="18" font-family="Montserrat" font-weight="bold">0.8610</text>
+<text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 566.25 440.03428)" font-size="28" font-family="Montserrat" font-weight="bold">0.863</text>
 </g>
 <g clip-path="url(#clip_7)">
 <text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 179.25 567.59609)" font-size="16" font-family="Montserrat" font-weight="bold"><tspan y="29" x="11.609375 21.817399 26.345414 37.76944 47.865465 58.92148 65.881488">$ Cents</tspan></text>
@@ -90,6 +90,6 @@
 <text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 283.44377 138.94493)" font-size="16" font-family="Montserrat" font-weight="bold"><tspan y="15" x="0 13.216034 23.088059 27.904068 32.720079 42.2881 46.816118 57.04013 61.85614 72.912158 82.78418 93.840198 103.29622 113.39224 117.92026 130.52829 141.56832 152.64034 162.51236 169.47237 179.56839 188.0644 192.59243 198.76844 203.29645 213.18447 220.08048 229.9525 239.40853 249.96855 254.78456 265.84059 277.0406 281.5686 293.82466 306.43269">Daily Finance Updates - Tracking AUD</tspan></text>
 <text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 283.44377 138.94493)" font-size="16" font-family="Montserrat" font-weight="bold"><tspan y="15" x="319.65626"> </tspan></text>
 <text fill="#ffffff" xml:space="preserve" transform="matrix(.75 0 0 .75 356.3625 249.73424)" font-size="35.99" font-family="Montserrat" font-weight="bold"><tspan y="37" x=".015625 23.009583 53.38031 79.82875 103.9742">FOREX</tspan></text>
-<text xml:space="preserve" text-anchor="middle" x="405" y="217.63416" font-size="35.99" font-family="Montserrat" font-weight="bold">December 26, 2025</text>
+<text xml:space="preserve" text-anchor="middle" x="405" y="217.63416" font-size="35.99" font-family="Montserrat" font-weight="bold">January 13, 2026</text>
 </g>
 </svg>

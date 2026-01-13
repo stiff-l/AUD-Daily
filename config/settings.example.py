@@ -9,6 +9,7 @@ Never commit settings.py to Git (it's in .gitignore)
 EXCHANGE_RATE_API_KEY = "your_exchange_rate_api_key_here"
 METALS_API_KEY = "your_metals_api_key_here"
 CRYPTO_API_KEY = "your_crypto_api_key_here"
+ALPHA_VANTAGE_API_KEY = "your_alpha_vantage_api_key_here"
 
 # Data Sources Configuration
 CURRENCY_SOURCES = {

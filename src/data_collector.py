@@ -57,193 +57,6 @@ def fetch_currency_rates() -> Dict[str, Any]:
 
 def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "USD") -> Optional[float]:
     """
-    Fetch commodity prices (Gold, Silver, Copper).
-    
-    Uses free APIs with optional API key support for better data quality.
-    
-    Returns:
-        Dictionary with commodity prices and metadata
-    """
-    data = {
-        "timestamp": datetime.now().isoformat(),
-        "commodities": {}
-    }
-    
-    try:
-        # Get AUD to USD rate for conversion
-        aud_response = requests.get("https://api.exchangerate-api.com/v4/latest/AUD", timeout=10)
-        aud_response.raise_for_status()
-        aud_rates = aud_response.json()
-        usd_rate = aud_rates.get("rates", {}).get("USD", 1)
-        
-        # Try metals-api.com if API key is configured
-        metals_api_key = getattr(settings, 'METALS_API_KEY', None)
-        
-        if metals_api_key and metals_api_key != "your_metals_api_key_here":
-            # Use metals-api.com with API key (better data quality)
-            base_url = "https://api.metals.live/v1/spot"
-            commodities_map = {
-                "GOLD": "gold",
-                "SILVER": "silver",
-                "COPPER": "copper"
-            }
-            
-            for symbol, metal_name in commodities_map.items():
-                try:
-                    response = requests.get(
-                        f"{base_url}/{metal_name}",
-                        headers={"x-api-key": metals_api_key},
-                        timeout=10
-                    )
-                    if response.status_code == 200:
-                        price_data = response.json()
-                        # Handle different response formats
-                        price = None
-                        if isinstance(price_data, dict):
-                            price = price_data.get("price") or price_data.get("spot") or price_data.get("value")
-                        elif isinstance(price_data, (int, float)):
-                            price = price_data
-                        
-                        if price:
-                            price_usd = float(price)
-                            data["commodities"][symbol] = {
-                                "price": price_usd,
-                                "price_aud": price_usd / usd_rate if usd_rate else None,
-                                "currency": "USD",
-                                "unit": "oz" if symbol in ["GOLD", "SILVER"] else "lb",
-                                "source": "metals-api.com"
-                            }
-                except Exception as e:
-                    print(f"Warning: Could not fetch {symbol} from metals-api.com: {e}")
-        
-        # Fallback: Use free alternative APIs
-        # Try using exchangerate-api.com with commodity codes
-        commodities_map = {
-            "GOLD": {"symbol": "XAU"},
-            "SILVER": {"symbol": "XAG"},
-            "COPPER": {"symbol": "XCU"}
-        }
-        
-        for symbol, metal_info in commodities_map.items():
-            if symbol not in data["commodities"]:
-                price_usd = None
-                source = None
-                
-                # Try exchangerate-api.com for precious metals (free, no key required)
-                # Note: exchangerate-api.com may not support commodities directly
-                # So we'll try alternative free sources
-                
-                # Try alternative: exchangerate.host (free, no key) - has commodity support
-                try:
-                    if symbol in ["GOLD", "SILVER"]:
-                        # exchangerate.host supports XAU and XAG
-                        metal_code = metal_info["symbol"]
-                        # Fetch latest rates with commodity codes
-                        response = requests.get(
-                            f"https://api.exchangerate.host/latest?base=USD&symbols={metal_code}",
-                            timeout=10
-                        )
-                        if response.status_code == 200:
-                            rates_data = response.json()
-                            if rates_data.get("success") and metal_code in rates_data.get("rates", {}):
-                                rate = rates_data["rates"][metal_code]
-                                # XAU/XAG rates are typically quoted as USD per oz, so invert if needed
-                                # If rate < 1, it's likely 1/X, otherwise it's the price
-                                if rate > 0:
-                                    if rate < 1:
-                                        price_usd = 1.0 / float(rate)
-                                    else:
-                                        price_usd = float(rate)
-                                    source = "exchangerate.host"
-                except Exception as e:
-                    pass
-                
-                # Try alternative: exchangerate.host convert endpoint
-                if not price_usd and symbol in ["GOLD", "SILVER"]:
-                    try:
-                        metal_code = metal_info["symbol"]
-                        response = requests.get(
-                            f"https://api.exchangerate.host/convert?from={metal_code}&to=USD&amount=1",
-                            timeout=10
-                        )
-                        if response.status_code == 200:
-                            conv_data = response.json()
-                            if conv_data.get("success") and conv_data.get("result"):
-                                price_usd = float(conv_data["result"])
-                                source = "exchangerate.host"
-                    except Exception as e:
-                        pass
-                
-                # Try alternative: metals-api.com free endpoint (without auth)
-                if not price_usd:
-                    try:
-                        metal_name = symbol.lower()
-                        response = requests.get(
-                            f"https://api.metals.live/v1/spot/{metal_name}",
-                            timeout=10
-                        )
-                        if response.status_code == 200:
-                            price_data = response.json()
-                            if isinstance(price_data, dict):
-                                price_usd = price_data.get("price") or price_data.get("spot") or price_data.get("value")
-                            elif isinstance(price_data, (int, float)):
-                                price_usd = float(price_data)
-                            if price_usd:
-                                source = "metals-api.com (free)"
-                    except Exception as e:
-                        pass
-                
-                # Try alternative: Use a free API that provides commodity prices
-                # exchangerate-api.com doesn't support commodities, so we'll use a placeholder
-                # Users can configure METALS_API_KEY for better data
-                
-                # Set the commodity data
-                if price_usd and price_usd > 0:
-                    data["commodities"][symbol] = {
-                        "price": price_usd,
-                        "price_aud": price_usd / usd_rate if usd_rate and usd_rate > 0 else None,
-                        "currency": "USD",
-                        "unit": "oz" if symbol in ["GOLD", "SILVER"] else "lb",
-                        "source": source or "unknown"
-                    }
-                else:
-                    # If all methods fail, provide helpful message
-                    data["commodities"][symbol] = {
-                        "price": None,
-                        "price_aud": None,
-                        "currency": "USD",
-                        "unit": "oz" if symbol in ["GOLD", "SILVER"] else "lb",
-                        "note": f"Free API not available for {symbol}. For commodity prices, configure METALS_API_KEY in config/settings.py (free at https://metals-api.com)"
-                    }
-        
-        # Print helpful message if no data retrieved
-        if not any(c.get("price") for c in data["commodities"].values()):
-            print("\n" + "="*60)
-            print("INFO: Commodity prices not available.")
-            print("="*60)
-            print("To enable commodity prices:")
-            print("1. Visit https://metals-api.com and sign up for a free API key")
-            print("2. Add your API key to config/settings.py:")
-            print("   METALS_API_KEY = 'your_api_key_here'")
-            print("="*60 + "\n")
-        
-    except Exception as e:
-        print(f"Error fetching commodity prices: {e}")
-        data["error"] = str(e)
-        # Set default structure
-        for commodity in ["GOLD", "SILVER", "COPPER"]:
-            if commodity not in data["commodities"]:
-                data["commodities"][commodity] = {
-                    "price": None,
-                    "currency": "USD",
-                    "unit": "oz" if commodity in ["GOLD", "SILVER"] else "lb"
-                }
-    
-    return data
-
-
-def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "USD") -> Optional[float]:
-    """
     Fetch historical exchange rate for a specific date.
     
     Args:
@@ -268,6 +81,43 @@ def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "
         print(f"Error fetching historical rate for {date}: {e}")
     
     return None
+
+
+def collect_historical_data_for_date(date: str) -> Dict[str, Any]:
+    """
+    Collect historical currency data for a specific date.
+    Fetches all tracked currencies: USD, EUR, CNY, SGD, JPY.
+    
+    Args:
+        date: Date in YYYY-MM-DD format
+        
+    Returns:
+        Dictionary with currency rates and metadata (similar to collect_all_data format)
+    """
+    currencies_data = {
+        "timestamp": datetime.now().isoformat(),
+        "currencies": {}
+    }
+    
+    # Fetch all tracked currencies for the historical date
+    currencies_to_fetch = ["USD", "EUR", "CNY", "SGD", "JPY"]
+    
+    for currency in currencies_to_fetch:
+        rate = fetch_historical_currency_rate(date, "AUD", currency)
+        if rate:
+            currencies_data["currencies"][currency] = {
+                "rate": rate,
+                "base": "AUD",
+                "date": date
+            }
+        else:
+            print(f"Warning: Could not fetch {currency} rate for {date}")
+    
+    # Return in same format as collect_all_data
+    return {
+        "collection_date": datetime.now().isoformat(),
+        "currencies": currencies_data
+    }
 
 
 def collect_historical_quarterly_data(start_year: int = 1966, end_year: Optional[int] = None) -> Dict[str, Any]:

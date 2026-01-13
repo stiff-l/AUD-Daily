@@ -14,12 +14,7 @@ from typing import Dict, Any, Optional
 try:
     from .data_formatter import standardize_data
 except ImportError:
-    try:
-        from src.data_formatter import standardize_data
-    except ImportError:
-        # Fallback if import fails
-        def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
-            return data
+    from src.data_formatter import standardize_data
 
 # Import currency history for table storage
 try:
@@ -154,44 +149,68 @@ def save_to_currency_table(data: Dict[str, Any], csv_path: str = "data/processed
         print("Warning: currency_history module not available. Skipping table save.")
         return csv_path
     
-    # Standardize data if needed
-    standardized_data = standardize_data(data)
-    
-    # Extract date
-    date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
     try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-    except:
-        date_obj = datetime.now()
-    
-    # Extract timestamp
-    timestamp_str = standardized_data.get("timestamp")
-    if timestamp_str:
+        # Standardize data if needed
+        standardized_data = standardize_data(data)
+        
+        # Extract date
+        date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
         try:
-            timestamp_obj = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
         except:
+            date_obj = datetime.now()
+        
+        # Extract timestamp
+        timestamp_str = standardized_data.get("timestamp")
+        if timestamp_str:
+            try:
+                timestamp_obj = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+            except:
+                timestamp_obj = datetime.now()
+        else:
             timestamp_obj = datetime.now()
-    else:
-        timestamp_obj = datetime.now()
-    
-    # Extract currency rates
-    currencies = standardized_data.get("currencies", {})
-    usd_rate = currencies.get("USD", {}).get("rate") if currencies.get("USD") else None
-    eur_rate = currencies.get("EUR", {}).get("rate") if currencies.get("EUR") else None
-    cny_rate = currencies.get("CNY", {}).get("rate") if currencies.get("CNY") else None
-    sgd_rate = currencies.get("SGD", {}).get("rate") if currencies.get("SGD") else None
-    
-    # Save to table
-    upsert_currency_history_row(
-        csv_path=csv_path,
-        date=date_obj,
-        usd_rate=usd_rate,
-        eur_rate=eur_rate,
-        cny_rate=cny_rate,
-        sgd_rate=sgd_rate,
-        timestamp=timestamp_obj
-    )
-    
-    print(f"Currency data saved to table: {csv_path}")
-    return csv_path
+        
+        # Extract currency rates
+        currencies = standardized_data.get("currencies", {})
+        usd_rate = currencies.get("USD", {}).get("rate") if currencies.get("USD") else None
+        eur_rate = currencies.get("EUR", {}).get("rate") if currencies.get("EUR") else None
+        cny_rate = currencies.get("CNY", {}).get("rate") if currencies.get("CNY") else None
+        sgd_rate = currencies.get("SGD", {}).get("rate") if currencies.get("SGD") else None
+        jpy_rate = currencies.get("JPY", {}).get("rate") if currencies.get("JPY") else None
+        
+        # Save to both CSV files
+        csv_paths = [
+            csv_path,  # Daily CSV: data/processed/currency_daily.csv
+            "data/historical/currency_history.csv"  # Historical CSV
+        ]
+        
+        saved_paths = []
+        for path in csv_paths:
+            try:
+                upsert_currency_history_row(
+                    csv_path=path,
+                    date=date_obj,
+                    usd_rate=usd_rate,
+                    eur_rate=eur_rate,
+                    cny_rate=cny_rate,
+                    sgd_rate=sgd_rate,
+                    jpy_rate=jpy_rate,
+                    timestamp=timestamp_obj
+                )
+                
+                # Verify the CSV was created/updated
+                if os.path.exists(path):
+                    print(f"✓ Currency data saved to table: {path}")
+                    saved_paths.append(path)
+                else:
+                    print(f"⚠ Warning: CSV file was not created at {path}")
+            except Exception as e:
+                print(f"⚠ Warning: Error saving to {path}: {e}")
+        
+        return csv_path if saved_paths else csv_paths[0]
+    except Exception as e:
+        print(f"❌ Error saving to currency table: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
