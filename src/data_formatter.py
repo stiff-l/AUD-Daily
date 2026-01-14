@@ -26,8 +26,23 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
         "currencies": {}
     }
     
-    # Extract date from collection_date or use current date
-    if "collection_date" in data:
+    # Extract date from currency data first (for historical dates)
+    # Then fall back to collection_date or current date
+    historical_date = None
+    if "currencies" in data:
+        currencies_data = data["currencies"]
+        if isinstance(currencies_data, dict) and "currencies" in currencies_data:
+            currencies_data = currencies_data["currencies"]
+            # Get the date from the first currency that has a date
+            for symbol, info in currencies_data.items():
+                if isinstance(info, dict) and "date" in info:
+                    historical_date = info.get("date")
+                    break
+    
+    # Use historical date if found, otherwise use collection_date or current date
+    if historical_date:
+        standardized["date"] = historical_date
+    elif "collection_date" in data:
         try:
             date_obj = datetime.fromisoformat(data["collection_date"].replace("Z", "+00:00"))
             standardized["date"] = date_obj.strftime("%Y-%m-%d")
@@ -36,7 +51,7 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     else:
         standardized["date"] = datetime.now().strftime("%Y-%m-%d")
     
-    # Standardize currencies (USD, EUR, CNY, SGD)
+    # Standardize currencies (USD, EUR, CNY, SGD, JPY)
     if "currencies" in data:
         currencies_data = data["currencies"]
         if isinstance(currencies_data, dict) and "currencies" in currencies_data:

@@ -52,16 +52,15 @@ def query_date_range(importer, start_date, end_date, currency):
 def list_currencies(importer):
     """List all available currencies in the database"""
     import sqlite3
-    conn = sqlite3.connect(importer.db_path)
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT DISTINCT quote_currency 
-        FROM exchange_rates 
-        ORDER BY quote_currency
-    """)
-    currencies = [row[0] for row in cursor.fetchall()]
-    conn.close()
+    with sqlite3.connect(importer.db_path) as conn:
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT DISTINCT quote_currency 
+            FROM exchange_rates 
+            ORDER BY quote_currency
+        """)
+        currencies = [row[0] for row in cursor.fetchall()]
     
     print(f"\nAvailable currencies ({len(currencies)}):")
     print(", ".join(currencies))
@@ -70,26 +69,24 @@ def list_currencies(importer):
 def show_database_summary(importer):
     """Show database summary statistics"""
     import sqlite3
-    conn = sqlite3.connect(importer.db_path)
-    cursor = conn.cursor()
-    
-    # Total records
-    cursor.execute("SELECT COUNT(*) FROM exchange_rates")
-    total = cursor.fetchone()[0]
-    
-    # Date range
-    cursor.execute("SELECT MIN(date), MAX(date) FROM exchange_rates")
-    min_date, max_date = cursor.fetchone()
-    
-    # Currencies
-    cursor.execute("SELECT COUNT(DISTINCT quote_currency) FROM exchange_rates")
-    num_currencies = cursor.fetchone()[0]
-    
-    # Dates
-    cursor.execute("SELECT COUNT(DISTINCT date) FROM exchange_rates")
-    num_dates = cursor.fetchone()[0]
-    
-    conn.close()
+    with sqlite3.connect(importer.db_path) as conn:
+        cursor = conn.cursor()
+        
+        # Total records
+        cursor.execute("SELECT COUNT(*) FROM exchange_rates")
+        total = cursor.fetchone()[0]
+        
+        # Date range
+        cursor.execute("SELECT MIN(date), MAX(date) FROM exchange_rates")
+        min_date, max_date = cursor.fetchone()
+        
+        # Currencies
+        cursor.execute("SELECT COUNT(DISTINCT quote_currency) FROM exchange_rates")
+        num_currencies = cursor.fetchone()[0]
+        
+        # Dates
+        cursor.execute("SELECT COUNT(DISTINCT date) FROM exchange_rates")
+        num_dates = cursor.fetchone()[0]
     
     print("\n" + "=" * 60)
     print("DATABASE SUMMARY")

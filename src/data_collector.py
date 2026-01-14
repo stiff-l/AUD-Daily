@@ -67,18 +67,29 @@ def fetch_historical_currency_rate(date: str, base: str = "AUD", target: str = "
     Returns:
         Exchange rate or None if not available
     """
+    # Try frankfurter.app API (free, no API key required, supports historical data)
     try:
-        # Try exchangerate.host API (free, no API key required)
-        url = f"https://api.exchangerate.host/{date}"
+        url = f"https://api.frankfurter.app/{date}"
         params = {"base": base, "symbols": target}
         response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
         
-        if data.get("success") and target in data.get("rates", {}):
+        if "rates" in data and target in data.get("rates", {}):
             return float(data["rates"][target])
     except Exception as e:
-        print(f"Error fetching historical rate for {date}: {e}")
+        # Fallback to exchangerate.host if frankfurter fails
+        try:
+            url = f"https://api.exchangerate.host/{date}"
+            params = {"base": base, "symbols": target}
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get("success") and target in data.get("rates", {}):
+                return float(data["rates"][target])
+        except Exception as e2:
+            print(f"Error fetching historical rate for {date}: {e2}")
     
     return None
 

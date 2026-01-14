@@ -350,30 +350,29 @@ class RBAForexImporter:
             logger.warning("No records to insert")
             return
         
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
         inserted = 0
         duplicates = 0
         errors = 0
         
-        for record in records:
-            try:
-                cursor.execute("""
-                    INSERT INTO exchange_rates 
-                    (date, base_currency, quote_currency, rate, source)
-                    VALUES (?, ?, ?, ?, ?)
-                """, record)
-                inserted += 1
-            except sqlite3.IntegrityError:
-                # Duplicate record, skip
-                duplicates += 1
-            except Exception as e:
-                logger.error(f"Error inserting record {record}: {e}")
-                errors += 1
-        
-        conn.commit()
-        conn.close()
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            for record in records:
+                try:
+                    cursor.execute("""
+                        INSERT INTO exchange_rates 
+                        (date, base_currency, quote_currency, rate, source)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, record)
+                    inserted += 1
+                except sqlite3.IntegrityError:
+                    # Duplicate record, skip
+                    duplicates += 1
+                except Exception as e:
+                    logger.error(f"Error inserting record {record}: {e}")
+                    errors += 1
+            
+            conn.commit()
         
         logger.info(f"Inserted: {inserted}, Duplicates: {duplicates}, Errors: {errors}")
     
@@ -416,26 +415,24 @@ class RBAForexImporter:
     
     def print_summary(self):
         """Print summary statistics of imported data"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Total records
-        cursor.execute("SELECT COUNT(*) FROM exchange_rates")
-        total = cursor.fetchone()[0]
-        
-        # Date range
-        cursor.execute("SELECT MIN(date), MAX(date) FROM exchange_rates")
-        min_date, max_date = cursor.fetchone()
-        
-        # Currencies
-        cursor.execute("SELECT COUNT(DISTINCT quote_currency) FROM exchange_rates")
-        num_currencies = cursor.fetchone()[0]
-        
-        # List of currencies
-        cursor.execute("SELECT DISTINCT quote_currency FROM exchange_rates ORDER BY quote_currency")
-        currencies = [row[0] for row in cursor.fetchall()]
-        
-        conn.close()
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Total records
+            cursor.execute("SELECT COUNT(*) FROM exchange_rates")
+            total = cursor.fetchone()[0]
+            
+            # Date range
+            cursor.execute("SELECT MIN(date), MAX(date) FROM exchange_rates")
+            min_date, max_date = cursor.fetchone()
+            
+            # Currencies
+            cursor.execute("SELECT COUNT(DISTINCT quote_currency) FROM exchange_rates")
+            num_currencies = cursor.fetchone()[0]
+            
+            # List of currencies
+            cursor.execute("SELECT DISTINCT quote_currency FROM exchange_rates ORDER BY quote_currency")
+            currencies = [row[0] for row in cursor.fetchall()]
         
         logger.info("=" * 60)
         logger.info("DATABASE SUMMARY")
@@ -458,18 +455,17 @@ class RBAForexImporter:
         Returns:
             Exchange rate or None if not found
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT rate FROM exchange_rates
-            WHERE date = ? AND base_currency = ? AND quote_currency = ?
-            ORDER BY created_at DESC
-            LIMIT 1
-        """, (date, base_currency, quote_currency))
-        
-        result = cursor.fetchone()
-        conn.close()
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT rate FROM exchange_rates
+                WHERE date = ? AND base_currency = ? AND quote_currency = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (date, base_currency, quote_currency))
+            
+            result = cursor.fetchone()
         
         return result[0] if result else None
     
@@ -487,8 +483,6 @@ class RBAForexImporter:
         Returns:
             DataFrame with date and rate columns
         """
-        conn = sqlite3.connect(self.db_path)
-        
         query = """
             SELECT date, rate FROM exchange_rates
             WHERE date >= ? AND date <= ?
@@ -496,8 +490,8 @@ class RBAForexImporter:
             ORDER BY date
         """
         
-        df = pd.read_sql_query(query, conn, params=(start_date, end_date, base_currency, quote_currency))
-        conn.close()
+        with sqlite3.connect(self.db_path) as conn:
+            df = pd.read_sql_query(query, conn, params=(start_date, end_date, base_currency, quote_currency))
         
         if not df.empty:
             df['date'] = pd.to_datetime(df['date'])
@@ -520,8 +514,6 @@ class RBAForexImporter:
         
         logger.info("Exporting RBA data to CSV format...")
         
-        conn = sqlite3.connect(self.db_path)
-        
         # Get all unique dates with rates for target currencies
         target_currencies = ['USD', 'EUR', 'CNY', 'SGD']
         
@@ -534,8 +526,8 @@ class RBAForexImporter:
             ORDER BY date, quote_currency, created_at DESC
         """
         
-        df_db = pd.read_sql_query(query, conn, params=tuple(target_currencies))
-        conn.close()
+        with sqlite3.connect(self.db_path) as conn:
+            df_db = pd.read_sql_query(query, conn, params=tuple(target_currencies))
         
         if df_db.empty:
             logger.warning("No data found in database to export")

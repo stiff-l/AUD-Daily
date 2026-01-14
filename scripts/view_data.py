@@ -92,7 +92,11 @@ def main():
             print(f"Error: Could not load file {args.file}")
             return
     elif args.date:
-        # Load from specific date
+        # Load from specific date - validate date format to prevent path traversal
+        import re
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', args.date):
+            print(f"Error: Invalid date format. Expected YYYY-MM-DD, got: {args.date}")
+            return
         filepath = os.path.join("data/processed", f"aud_daily_{args.date}.json")
         data = load_data(filepath)
         if not data:
