@@ -127,8 +127,8 @@ def generate_arrow_html(current_rate, previous_rate):
             # Price is down - red down arrow
             return '<div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>'
         else:
-            # No change - no arrow
-            return ""
+            # No change - white dash
+            return '<div class="currency-arrow arrow-neutral"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="3"/></svg></div>'
     except (ValueError, TypeError):
         return ""
 
@@ -145,11 +145,17 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     Returns:
         HTML content with placeholders replaced
     """
+    # Preserve the date from input data if it exists (for historical dates)
+    preserved_date = data.get("date") if isinstance(data, dict) else None
+    
     # Standardize data if needed
     standardized = standardize_data(data)
     
-    # Get date
-    date_str = standardized.get("date") or datetime.now().strftime("%Y-%m-%d")
+    # Use preserved date if available, otherwise use standardized date, otherwise today
+    date_str = preserved_date or standardized.get("date") or datetime.now().strftime("%Y-%m-%d")
+    # Ensure standardized data uses the correct date
+    standardized["date"] = date_str
+    
     full_date = datetime.strptime(date_str, "%Y-%m-%d").strftime("%B %d, %Y")
     
     # Get currency rates

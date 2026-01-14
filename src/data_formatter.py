@@ -26,10 +26,14 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
         "currencies": {}
     }
     
+    # If data already has a 'date' field (already standardized), use it
+    if "date" in data and data["date"]:
+        standardized["date"] = data["date"]
+    
     # Extract date from currency data first (for historical dates)
     # Then fall back to collection_date or current date
     historical_date = None
-    if "currencies" in data:
+    if not standardized["date"] and "currencies" in data:
         currencies_data = data["currencies"]
         if isinstance(currencies_data, dict) and "currencies" in currencies_data:
             currencies_data = currencies_data["currencies"]
@@ -38,31 +42,49 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
                 if isinstance(info, dict) and "date" in info:
                     historical_date = info.get("date")
                     break
+        else:
+            # Data might already be standardized - check currencies directly
+            for symbol, info in currencies_data.items():
+                if isinstance(info, dict) and "date" in info:
+                    historical_date = info.get("date")
+                    break
     
     # Use historical date if found, otherwise use collection_date or current date
-    if historical_date:
-        standardized["date"] = historical_date
-    elif "collection_date" in data:
-        try:
-            date_obj = datetime.fromisoformat(data["collection_date"].replace("Z", "+00:00"))
-            standardized["date"] = date_obj.strftime("%Y-%m-%d")
-        except:
+    if not standardized["date"]:
+        if historical_date:
+            standardized["date"] = historical_date
+        elif "collection_date" in data:
+            try:
+                date_obj = datetime.fromisoformat(data["collection_date"].replace("Z", "+00:00"))
+                standardized["date"] = date_obj.strftime("%Y-%m-%d")
+            except:
+                standardized["date"] = datetime.now().strftime("%Y-%m-%d")
+        else:
             standardized["date"] = datetime.now().strftime("%Y-%m-%d")
-    else:
-        standardized["date"] = datetime.now().strftime("%Y-%m-%d")
     
     # Standardize currencies (USD, EUR, CNY, SGD, JPY)
     if "currencies" in data:
         currencies_data = data["currencies"]
+        # Check if currencies is nested (raw data) or direct (already standardized)
         if isinstance(currencies_data, dict) and "currencies" in currencies_data:
             currencies_data = currencies_data["currencies"]
         
-        for symbol, info in currencies_data.items():
-            standardized["currencies"][symbol] = {
-                "rate": info.get("rate"),
-                "base": info.get("base", "AUD"),
-                "date": info.get("date", standardized["date"])
-            }
+        # If data is already standardized, copy currencies directly
+        if isinstance(currencies_data, dict):
+            for symbol, info in currencies_data.items():
+                if isinstance(info, dict):
+                    standardized["currencies"][symbol] = {
+                        "rate": info.get("rate"),
+                        "base": info.get("base", "AUD"),
+                        "date": info.get("date", standardized["date"])
+                    }
+                else:
+                    # Handle case where info might be a simple value
+                    standardized["currencies"][symbol] = {
+                        "rate": info,
+                        "base": "AUD",
+                        "date": standardized["date"]
+                    }
     
     return standardized
 
