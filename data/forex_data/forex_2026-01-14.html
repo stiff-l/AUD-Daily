@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE DAILY AUD - {{FULL_DATE}}</title>
+    <title>THE DAILY AUD - January 14, 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
@@ -131,7 +131,7 @@
         }
 
         .currency-code {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             line-height: 25px;
             color: #ffffff;
@@ -144,12 +144,13 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-top: 15px;
         }
 
         .currency-arrow {
-            width: 110px;
-            height: 110px;
-            margin-top: -8px;
+            width: 90px;
+            height: 90px;
+            margin-top: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -170,6 +171,7 @@
             color: #ef4444;
             fill: #ef4444;
         }
+
         .currency-unit {
             font-size: 12px;
             font-weight: 700;
@@ -218,7 +220,7 @@
             <div class="subtitle">Daily Finance Updates - Tracking AUD</div>
         </div>
         
-        <div class="date">{{FULL_DATE}}</div>
+        <div class="date">January 14, 2026</div>
         
         <div class="forex-header">FOREX</div>
         
@@ -226,24 +228,24 @@
             <div class="table-grid">
                 <!-- First row: Currency rates -->
                 <div class="table-cell">
-                    <div class="currency-code">{{USD_RATE}}</div>
-                    {{USD_ARROW}}
+                    <div class="currency-code">0.669</div>
+                    <div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{EUR_RATE}}</div>
-                    {{EUR_ARROW}}
+                    <div class="currency-code">0.574</div>
+                    <div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{JPY_RATE}}</div>
-                    {{JPY_ARROW}}
+                    <div class="currency-code">106.380</div>
+                    <div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{CNY_RATE}}</div>
-                    {{CNY_ARROW}}
+                    <div class="currency-code">4.670</div>
+                    <div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{SGD_RATE}}</div>
-                    {{SGD_ARROW}}
+                    <div class="currency-code">0.862</div>
+                    <div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 
                 <!-- Second row: Currency units -->

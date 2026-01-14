@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Scheduled Update Script
+Daily Update Script
 
-Runs daily data collection at 5pm Cairns time (AEST - UTC+10).
-Can be run manually or scheduled with cron/scheduler.
+Run this script daily to collect and save AUD currency tracking data.
+Tracks: USD, EUR, CNY, SGD, JPY
+Can be run manually or scheduled with cron (Linux/Mac) or Task Scheduler (Windows).
+
+Designed to run at 5pm Cairns time (AEST - UTC+10) for COB updates.
 """
 
 import sys
@@ -11,7 +14,7 @@ import os
 from datetime import datetime
 import pytz
 
-# Add parent directory to path
+# Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.data_collector import collect_all_data
@@ -47,10 +50,10 @@ def is_cob_time():
 
 
 def main():
-    """Main function to run scheduled data collection at 5pm Cairns time."""
+    """Main function to run daily data collection."""
     print("=" * 60)
-    print("AUD Daily Tracker - Scheduled Update")
-    print("Tracking: USD, EUR, CNY, SGD")
+    print("AUD Daily Tracker - Currency Data Collection")
+    print("Tracking: USD, EUR, CNY, SGD, JPY")
     print("=" * 60)
     
     cairns_time = get_cairns_time()
@@ -75,7 +78,7 @@ def main():
         print("\nSaving raw data...")
         save_raw_data(data, output_dir="data/raw")
         
-        # Save daily data (date-based filename)
+        # Save daily data (date-based filename, overwrites if exists)
         print("Saving daily data...")
         save_daily_data(standardized_data, output_dir="data/processed")
         
@@ -96,11 +99,11 @@ def main():
             # Don't fail the entire update if HTML generation fails
         
         print("\n" + "=" * 60)
-        print("Scheduled update complete!")
+        print("Data collection complete!")
         print("=" * 60)
         
     except Exception as e:
-        print(f"\n❌ Error during scheduled update: {e}")
+        print(f"\n❌ Error during data collection: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

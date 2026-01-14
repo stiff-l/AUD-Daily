@@ -33,8 +33,7 @@ AUD-Daily/
 │   ├── raw/                  # Raw data files (timestamped JSON)
 │   ├── processed/            # Processed data (date-based JSON + CSV tables)
 ├── scripts/                  # Utility scripts
-│   ├── daily_update.py       # Manual data collection
-│   ├── scheduled_update.py   # Scheduled update (5pm Cairns time)
+│   ├── daily_update.py       # Daily data collection (manual or scheduled)
 │   ├── view_data.py          # View collected data
 │   └── standardize_existing_data.py  # Convert old data formats
 └── docs/                     # Documentation
@@ -73,7 +72,7 @@ AUD-Daily/
 
 5. **Set up scheduled updates**:
    - See `docs/SCHEDULING_GUIDE.md` for detailed instructions
-   - Schedule `scripts/scheduled_update.py` to run at 5pm Cairns time (AEST)
+   - Schedule `scripts/daily_update.py` to run at 5pm Cairns time (AEST)
 
 ## Data Sources
 

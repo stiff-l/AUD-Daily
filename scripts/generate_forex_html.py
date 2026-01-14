@@ -8,7 +8,7 @@ daily forex data, then saves the result to data/forex_data/.
 
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add src directory to path
@@ -16,6 +16,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.data_collector import fetch_currency_rates
 from src.data_formatter import standardize_data
+from src.currency_history import load_currency_history_csv
+import pandas as pd
 
 
 def fetch_all_currency_rates():
@@ -45,13 +47,100 @@ def format_rate(rate, decimals=4):
     return f"{rate:.{decimals}f}"
 
 
-def replace_html_placeholders(html_content, data):
+def get_previous_day_rates(current_date_str, csv_path="data/processed/currency_daily.csv"):
+    """
+    Get currency rates for the previous day (n-1).
+    
+    Args:
+        current_date_str: Current date in YYYY-MM-DD format
+        csv_path: Path to the currency history CSV file
+        
+    Returns:
+        Dictionary with currency codes as keys and rates as values, or None if not found
+    """
+    try:
+        # Try relative path first, then absolute path
+        if not os.path.exists(csv_path):
+            # Try relative to script location
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            alt_path = os.path.join(script_dir, '..', csv_path)
+            if os.path.exists(alt_path):
+                csv_path = os.path.abspath(alt_path)
+            else:
+                return None
+        
+        df = load_currency_history_csv(csv_path)
+        
+        if df is None or df.empty:
+            return None
+        
+        # Parse current date
+        current_date = datetime.strptime(current_date_str, "%Y-%m-%d").date()
+        
+        # Find previous day (go back up to 7 days to find the most recent data)
+        previous_rates = None
+        for days_back in range(1, 8):
+            check_date = current_date - timedelta(days=days_back)
+            previous_row = df[df['date'] == check_date]
+            
+            if not previous_row.empty:
+                row = previous_row.iloc[0]
+                previous_rates = {
+                    "USD": row.get('usd_rate') if pd.notna(row.get('usd_rate')) else None,
+                    "EUR": row.get('eur_rate') if pd.notna(row.get('eur_rate')) else None,
+                    "JPY": row.get('jpy_rate') if pd.notna(row.get('jpy_rate')) else None,
+                    "CNY": row.get('cny_rate') if pd.notna(row.get('cny_rate')) else None,
+                    "SGD": row.get('sgd_rate') if pd.notna(row.get('sgd_rate')) else None,
+                }
+                # Verify we got at least one valid rate
+                if any(v is not None for v in previous_rates.values()):
+                    return previous_rates
+        
+        return None
+    except Exception as e:
+        print(f"Warning: Could not load previous day's rates: {e}")
+        return None
+
+
+def generate_arrow_html(current_rate, previous_rate):
+    """
+    Generate arrow HTML based on rate comparison.
+    
+    Args:
+        current_rate: Current day's rate
+        previous_rate: Previous day's rate
+        
+    Returns:
+        HTML string for the arrow icon, or empty string if no comparison possible
+    """
+    if current_rate is None or previous_rate is None:
+        return ""
+    
+    try:
+        current = float(current_rate)
+        previous = float(previous_rate)
+        
+        if current > previous:
+            # Price is up - green up arrow
+            return '<div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>'
+        elif current < previous:
+            # Price is down - red down arrow
+            return '<div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>'
+        else:
+            # No change - no arrow
+            return ""
+    except (ValueError, TypeError):
+        return ""
+
+
+def replace_html_placeholders(html_content, data, include_arrows=False):
     """
     Replace placeholders in HTML content with actual data.
     
     Args:
         html_content: The HTML template content as string
         data: Standardized data dictionary with currencies
+        include_arrows: Whether to include arrow placeholders (for arrow template)
         
     Returns:
         HTML content with placeholders replaced
@@ -73,6 +162,15 @@ def replace_html_placeholders(html_content, data):
         "SGD": currencies.get("SGD", {}).get("rate") if currencies.get("SGD") else None,
     }
     
+    # Get previous day's rates if arrows are needed
+    previous_rates = None
+    if include_arrows:
+        previous_rates = get_previous_day_rates(date_str)
+        if previous_rates:
+            print(f"  Found previous day's rates for comparison")
+        else:
+            print(f"  Warning: No previous day's rates found - arrows will not be displayed")
+    
     # Build replacement dictionary
     replacements = {
         "{{FULL_DATE}}": full_date,
@@ -83,6 +181,19 @@ def replace_html_placeholders(html_content, data):
         rate_value = format_rate(rates[currency], decimals=3)
         replacements["{{" + currency + "_RATE}}"] = rate_value
         replacements["{" + currency + "_RATE}"] = rate_value
+        
+        # Add arrow if needed
+        if include_arrows:
+            arrow_html = ""
+            if previous_rates and previous_rates.get(currency) is not None:
+                arrow_html = generate_arrow_html(rates[currency], previous_rates.get(currency))
+                if arrow_html:
+                    direction = "up" if rates[currency] and previous_rates.get(currency) and float(rates[currency]) > float(previous_rates.get(currency)) else "down"
+                    print(f"  {currency}: {rate_value} ({direction} from previous day)")
+            else:
+                print(f"  {currency}: {rate_value} (no previous data for comparison)")
+            replacements["{{" + currency + "_ARROW}}"] = arrow_html
+            replacements["{" + currency + "_ARROW}"] = arrow_html
     
     # Replace all placeholders
     result = html_content
@@ -126,9 +237,17 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
     else:
         print("Using provided forex data...")
     
+    # Check if template has arrow placeholders by looking for ARROW placeholders in the content
+    is_arrow_template = any(f"{{{{{currency}_ARROW}}}}" in template_content or 
+                            f"{{{currency}_ARROW}}" in template_content
+                            for currency in ["USD", "EUR", "JPY", "CNY", "SGD"])
+    
+    if is_arrow_template:
+        print("Arrow placeholders detected in template - will include arrows based on previous day's rates")
+    
     # Replace placeholders
     print("Replacing placeholders...")
-    html_content = replace_html_placeholders(template_content, standardized_data)
+    html_content = replace_html_placeholders(template_content, standardized_data, include_arrows=is_arrow_template)
     
     # Create output directory
     Path(output_dir).mkdir(parents=True, exist_ok=True)

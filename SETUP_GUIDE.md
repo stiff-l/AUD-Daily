@@ -122,14 +122,14 @@ To automatically collect data every day at 5pm Cairns time:
 1. Open crontab: `crontab -e`
 2. Add this line (runs daily at 5pm AEST):
    ```
-   0 17 * * * cd /path/to/AUD-Daily && /path/to/venv/bin/python scripts/scheduled_update.py
+   0 17 * * * cd /path/to/AUD-Daily && /path/to/venv/bin/python scripts/daily_update.py
    ```
 
 **On Windows:**
 1. Open Task Scheduler
 2. Create a new task
 3. Set it to run daily at 5:00 PM
-4. Action: Run `python scripts/scheduled_update.py` in your project directory
+4. Action: Run `python scripts/daily_update.py` in your project directory
 
 See `docs/SCHEDULING_GUIDE.md` for more detailed scheduling instructions.
 
@@ -150,9 +150,7 @@ See `docs/SCHEDULING_GUIDE.md` for more detailed scheduling instructions.
 ### `scripts/daily_update.py`
 - Main script that runs the daily collection
 - Collects currency data and saves to JSON + CSV table
-
-### `scripts/scheduled_update.py`
-- Same as daily_update.py but designed for scheduled runs at 5pm Cairns time
+- Can be run manually or scheduled (designed for 5pm Cairns time)
 
 ## Next Steps
 

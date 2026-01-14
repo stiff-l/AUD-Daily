@@ -43,7 +43,7 @@ python scripts/query_rba_data.py --range 2023-01-01 2023-12-31 EUR
 
 There are two CSV files available:
 
-1. **Daily CSV** (`data/processed/currency_daily.csv`) - Updated daily by `daily_update.py` and `scheduled_update.py`
+1. **Daily CSV** (`data/processed/currency_daily.csv`) - Updated daily by `daily_update.py`
 2. **Historical CSV** (`data/historical/currency_history.csv`) - Static historical data exported from RBA database
 
 Both contain **USD, EUR, CNY, SGD** in the standard format.

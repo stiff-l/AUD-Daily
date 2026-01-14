@@ -19,12 +19,12 @@ This guide explains how to schedule the AUD Daily Tracker to run automatically a
 
 2. **Add this line** (adjust paths as needed):
    ```cron
-   0 7 * * * cd /Users/stephanel/AUD-Daily && /Users/stephanel/AUD-Daily/venv/bin/python scripts/scheduled_update.py >> logs/cron.log 2>&1
+   0 7 * * * cd /Users/stephanel/AUD-Daily && /Users/stephanel/AUD-Daily/venv/bin/python scripts/daily_update.py >> logs/cron.log 2>&1
    ```
 
    Or if using system Python:
    ```cron
-   0 7 * * * cd /Users/stephanel/AUD-Daily && python3 scripts/scheduled_update.py >> logs/cron.log 2>&1
+   0 7 * * * cd /Users/stephanel/AUD-Daily && python3 scripts/daily_update.py >> logs/cron.log 2>&1
    ```
 
 3. **Cron format explanation**:
@@ -45,7 +45,7 @@ This guide explains how to schedule the AUD Daily Tracker to run automatically a
 
 5. **Test the cron job** (run manually first):
    ```bash
-   python scripts/scheduled_update.py
+   python scripts/daily_update.py
    ```
 
 ### Option 2: macOS - Using launchd (LaunchAgent)
@@ -61,7 +61,7 @@ This guide explains how to schedule the AUD Daily Tracker to run automatically a
        <key>ProgramArguments</key>
        <array>
            <string>/Users/stephanel/AUD-Daily/venv/bin/python</string>
-           <string>/Users/stephanel/AUD-Daily/scripts/scheduled_update.py</string>
+           <string>/Users/stephanel/AUD-Daily/scripts/daily_update.py</string>
        </array>
        <key>StandardOutPath</key>
        <string>/Users/stephanel/AUD-Daily/logs/launchd.log</string>
@@ -112,7 +112,7 @@ This guide explains how to schedule the AUD Daily Tracker to run automatically a
 4. **Set Action**:
    - Action: Start a program
    - Program/script: `C:\Python39\python.exe` (or your Python path)
-   - Add arguments: `scripts\scheduled_update.py`
+   - Add arguments: `scripts\daily_update.py`
    - Start in: `C:\path\to\AUD-Daily`
 
 5. **Set Conditions** (optional):
@@ -136,7 +136,7 @@ tail -f logs/cron.log
 Always test manually before scheduling:
 
 ```bash
-python scripts/scheduled_update.py
+python scripts/daily_update.py
 ```
 
 ### Check Current Time
@@ -149,7 +149,7 @@ The script displays the current Cairns time when it runs. Verify it's running at
 
 1. **Check file permissions**:
    ```bash
-   chmod +x scripts/scheduled_update.py
+   chmod +x scripts/daily_update.py
    ```
 
 2. **Check Python path**: Ensure the Python path in your cron/scheduler is correct
