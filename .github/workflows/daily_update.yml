@@ -1,0 +1,79 @@
+name: Daily Data Collection
+
+on:
+  schedule:
+    # Run daily at 5pm AEST (Cairns time) = 7am UTC
+    # Cron format: minute hour day month day-of-week
+    - cron: '0 7 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  collect_data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libnss3 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libdrm2 \
+          libxkbcommon0 \
+          libxcomposite1 \
+          libxdamage1 \
+          libxfixes3 \
+          libxrandr2 \
+          libgbm1 \
+          libasound2
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        playwright install chromium
+        playwright install-deps chromium
+    
+    - name: Collect Commodity Data
+      run: |
+        python3 scripts/Mineral_Commodities_Data_Collection/daily_update.py
+      continue-on-error: true
+    
+    - name: Collect Forex Data
+      run: |
+        python3 scripts/Forex_Data_Collection/daily_update.py
+      continue-on-error: true
+    
+    - name: Generate Commodities HTML and JPEG
+      run: |
+        python3 scripts/generate_mineral_commodities_html.py
+      continue-on-error: true
+    
+    - name: Generate Forex HTML and JPEG
+      run: |
+        python3 scripts/generate_forex_html.py
+      continue-on-error: true
+    
+    - name: Commit and push data
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        # Add HTML and JPEG files (raw/processed JSON are in .gitignore)
+        git add data/forex_data/HTML/ data/forex_data/JPEG/ || true
+        git add data/commodities_data/HTML/ data/commodities_data/JPEG/ || true
+        git add data/forex_data/processed/currency_daily.csv || true
+        git add data/commodities_data/processed/commodity_daily.csv || true
+        git diff --staged --quiet || git commit -m "Auto-update: Daily data collection $(date +'%Y-%m-%d %H:%M:%S UTC')"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
