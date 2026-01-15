@@ -17,3 +17,6 @@ pytz>=2023.3
 openpyxl>=3.1.0
 xlrd>=2.0.1  # Required for reading .xls files (Excel 97-2003 format)
 
+# HTML to image conversion
+playwright>=1.40.0
+

@@ -94,8 +94,10 @@ def main():
     
     # Generate the output - always use HTML template
     template_path = 'templates/forex_template.html'
-    output_path = generate_forex_html(template_path, 'data/forex_data', standardized)
-    print(f'✓ Successfully generated: {output_path}')
+    html_path, jpeg_path = generate_forex_html(template_path, 'data/forex_data', standardized)
+    print(f'✓ Successfully generated HTML: {html_path}')
+    if jpeg_path:
+        print(f'✓ Successfully generated JPEG: {jpeg_path}')
 
 
 if __name__ == "__main__":

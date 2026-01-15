@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0, minimum-scale=0.5">
-    <title>THE DAILY AUD - {{FULL_DATE}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE DAILY AUD - January 03, 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
@@ -15,11 +15,11 @@
         }
 
         html, body {
-            width: 1080px;
-            height: 1350px;
+            width: 810px;
+            height: 810px;
             margin: 0;
             padding: 0;
-            overflow: auto;
+            overflow: hidden;
         }
 
         body {
@@ -27,75 +27,74 @@
             background-color: #634bff;
             color: #ffffff;
             position: relative;
-            width: 1080px;
-            height: 1350px;
+            width: 810px;
+            height: 810px;
         }
 
         .container {
-            width: 1080px;
-            height: 1350px;
+            width: 810px;
+            height: 810px;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             padding: 0;
         }
 
         .header {
             text-align: center;
             width: 100%;
-            padding-top: 0;
+            padding-top: 73px;
             flex-shrink: 0;
         }
 
         .title {
-            font-size: 54px;
+            font-size: 27px;
             font-weight: 700;
-            line-height: 74px;
-            margin-bottom: 16px;
+            line-height: 37px;
+            margin-bottom: 8px;
             color: #181818;
-            letter-spacing: 1px;
-            height: 74px;
+            letter-spacing: 0.5px;
+            height: 37px;
         }
 
         .subtitle {
-            font-size: 24px;
+            font-size: 12px;
             font-weight: 700;
-            line-height: 30px;
-            margin-bottom: 100px;
+            line-height: 15px;
+            margin-bottom: 20px;
             color: #ffffff;
-            height: 30px;
+            height: 15px;
         }
 
         .date {
-            font-size: 54px;
+            font-size: 27px;
             font-weight: 700;
-            line-height: 74px;
+            line-height: 37px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             color: #181818;
-            height: 74px;
+            height: 37px;
             width: 100%;
         }
 
         .forex-header {
-            font-size: 54px;
+            font-size: 27px;
             font-weight: 700;
-            line-height: 74px;
+            line-height: 37px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             color: #ffffff;
-            height: 74px;
+            height: 37px;
             flex-shrink: 0;
         }
 
         .table-container {
-            width: 972px;
-            height: 476px;
+            width: 486px;
+            height: 238px;
             margin: 0 auto;
             position: relative;
-            border: 6px solid #ffffff;
+            border: 3px solid #ffffff;
             background-color: transparent;
             flex-shrink: 0;
         }
@@ -111,8 +110,8 @@
         }
 
         .table-cell {
-            border-right: 6px solid #ffffff;
-            border-bottom: 6px solid #ffffff;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -132,26 +131,26 @@
         }
 
         .currency-code {
-            font-size: 42px;
+            font-size: 21px;
             font-weight: 700;
-            line-height: 50px;
+            line-height: 25px;
             color: #ffffff;
             text-align: center;
             width: 100%;
-            height: 50px;
+            height: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 50px;
+            margin-top: 25px;
         }
 
         .currency-arrow {
-            width: 220px;
-            height: 220px;
-            margin-top: -16px;
+            width: 110px;
+            height: 110px;
+            margin-top: -8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -178,42 +177,32 @@
             fill: #ffffff;
         }
         .currency-unit {
-            font-size: 24px;
+            font-size: 12px;
             font-weight: 700;
-            line-height: 29px;
+            line-height: 14px;
             color: #ffffff;
             text-align: center;
             width: 100%;
+            height: 14px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             white-space: nowrap;
             overflow: hidden;
-            gap: 8px;
-        }
-
-        .currency-flag {
-            font-size: 40px;
-            line-height: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .yuan-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 4px;
             width: 100%;
         }
 
         .yuan-symbol {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 10px;
+            height: 10px;
             flex-shrink: 0;
             vertical-align: middle;
         }
@@ -235,7 +224,7 @@
             <div class="subtitle">Daily Finance Updates - Tracking AUD</div>
         </div>
         
-        <div class="date">{{FULL_DATE}}</div>
+        <div class="date">January 03, 2026</div>
         
         <div class="forex-header">FOREX</div>
         
@@ -243,63 +232,48 @@
             <div class="table-grid">
                 <!-- First row: Currency rates -->
                 <div class="table-cell">
-                    <div class="currency-code">{{USD_RATE}}</div>
-                    {{USD_ARROW}}
+                    <div class="currency-code">0.669</div>
+                    <div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{EUR_RATE}}</div>
-                    {{EUR_ARROW}}
+                    <div class="currency-code">0.571</div>
+                    <div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{JPY_RATE}}</div>
-                    {{JPY_ARROW}}
+                    <div class="currency-code">105.060</div>
+                    <div class="currency-arrow arrow-neutral"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="3"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{CNY_RATE}}</div>
-                    {{CNY_ARROW}}
+                    <div class="currency-code">4.682</div>
+                    <div class="currency-arrow arrow-neutral"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="3"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{SGD_RATE}}</div>
-                    {{SGD_ARROW}}
+                    <div class="currency-code">0.861</div>
+                    <div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 
                 <!-- Second row: Currency units -->
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>$ Cents</div>
-                        <div class="currency-flag">🇺🇸</div>
-                    </div>
+                    <div class="currency-unit">$ Cents</div>
+                </div>
+                <div class="table-cell">
+                    <div class="currency-unit">€ Cents</div>
+                </div>
+                <div class="table-cell">
+                    <div class="currency-unit">¥ Yen</div>
                 </div>
                 <div class="table-cell">
                     <div class="currency-unit">
-                        <div>€ Cents</div>
-                        <div class="currency-flag">🇪🇺</div>
+                        <span class="yuan-container">
+                            <svg class="yuan-symbol" viewBox="0 -738 1000 738" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M427 0H573V-154H767V-228H573V-293H767V-367H605L841-738H671L581-558C546-485 533-456 504-402H499C472-456 459-482 422-558L331-738H158L393-367H232V-293H427V-228H232V-154H427V0Z"/>
+                            </svg>
+                            <span>Yuan</span>
+                        </span>
                     </div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>¥ Yen</div>
-                        <div class="currency-flag">🇯🇵</div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>
-                            <span class="yuan-container">
-                                <svg class="yuan-symbol" viewBox="0 -738 1000 738" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M427 0H573V-154H767V-228H573V-293H767V-367H605L841-738H671L581-558C546-485 533-456 504-402H499C472-456 459-482 422-558L331-738H158L393-367H232V-293H427V-228H232V-154H427V0Z"/>
-                                </svg>
-                                <span>Yuan</span>
-                            </span>
-                        </div>
-                        <div class="currency-flag">🇨🇳</div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>S$ Cents</div>
-                        <div class="currency-flag">🇸🇬</div>
-                    </div>
+                    <div class="currency-unit">S$ Cents</div>
                 </div>
             </div>
         </div>

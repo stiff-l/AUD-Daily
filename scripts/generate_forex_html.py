@@ -3,7 +3,8 @@
 Generate Forex HTML from Template
 
 This script reads an HTML template with placeholders and replaces them with
-daily forex data, then saves the result to data/forex_data/.
+daily forex data, then saves the result to data/forex_data/HTML/ and also
+converts it to JPEG format saved to data/forex_data/JPEG/.
 """
 
 import sys
@@ -18,6 +19,12 @@ from src.data_collector import fetch_currency_rates
 from src.data_formatter import standardize_data
 from src.currency_history import load_currency_history_csv
 import pandas as pd
+
+try:
+    from playwright.sync_api import sync_playwright
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
 
 
 def fetch_all_currency_rates():
@@ -209,17 +216,65 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     return result
 
 
+def html_to_jpeg(html_path, jpeg_path, width=1080, height=1350):
+    """
+    Convert HTML file to JPEG image.
+    
+    Args:
+        html_path: Path to the HTML file
+        jpeg_path: Path where the JPEG should be saved
+        width: Width of the output image in pixels (default: 1080)
+        height: Height of the output image in pixels (default: 1350)
+        
+    Returns:
+        Path to the generated JPEG file, or None if conversion failed
+    """
+    if not PLAYWRIGHT_AVAILABLE:
+        print("Warning: playwright not available. Install with: pip install playwright && playwright install chromium")
+        return None
+    
+    try:
+        with sync_playwright() as p:
+            # Launch browser
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            
+            # Set viewport size to match HTML dimensions
+            page.set_viewport_size({"width": width, "height": height})
+            
+            # Load HTML file (use file:// URL format)
+            html_abs_path = os.path.abspath(html_path)
+            # Convert Windows path separators to forward slashes for file:// URL
+            html_file_url = f"file://{html_abs_path.replace(os.sep, '/')}"
+            page.goto(html_file_url)
+            
+            # Wait for page to load (including fonts and images)
+            page.wait_for_load_state("networkidle")
+            
+            # Take full page screenshot as JPEG (captures entire content, not just viewport)
+            page.screenshot(path=jpeg_path, type="jpeg", quality=95, full_page=True)
+            
+            browser.close()
+        
+        print(f"✓ JPEG generated successfully: {jpeg_path}")
+        return jpeg_path
+    except Exception as e:
+        print(f"Warning: Error converting HTML to JPEG: {e}")
+        return None
+
+
 def generate_forex_html(template_path, output_dir="data/forex_data", standardized_data=None):
     """
     Generate HTML file from template with daily forex data.
+    Also saves a JPEG version of the HTML.
     
     Args:
         template_path: Path to the HTML template file
-        output_dir: Directory to save the generated HTML
+        output_dir: Base directory to save the generated files (will create HTML/ and JPEG/ subdirectories)
         standardized_data: Optional pre-standardized data dictionary. If None, fetches fresh data.
         
     Returns:
-        Path to the generated HTML file
+        Tuple of (path to HTML file, path to JPEG file) or (path to HTML file, None) if JPEG conversion failed
     """
     # Check if template exists
     if not os.path.exists(template_path):
@@ -255,21 +310,31 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
     print("Replacing placeholders...")
     html_content = replace_html_placeholders(template_content, standardized_data, include_arrows=is_arrow_template)
     
-    # Create output directory
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    # Create output subdirectories
+    html_dir = os.path.join(output_dir, "HTML")
+    jpeg_dir = os.path.join(output_dir, "JPEG")
+    Path(html_dir).mkdir(parents=True, exist_ok=True)
+    Path(jpeg_dir).mkdir(parents=True, exist_ok=True)
     
     # Generate output filename with date
     date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
     output_filename = f"forex_{date_str}.html"
-    output_path = os.path.join(output_dir, output_filename)
+    html_path = os.path.join(html_dir, output_filename)
+    jpeg_filename = f"forex_{date_str}.jpg"
+    jpeg_path = os.path.join(jpeg_dir, jpeg_filename)
     
     # Save generated HTML
-    print(f"Saving to: {output_path}")
-    with open(output_path, 'w', encoding='utf-8') as f:
+    print(f"Saving HTML to: {html_path}")
+    with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"✓ HTML generated successfully: {output_path}")
-    return output_path
+    print(f"✓ HTML generated successfully: {html_path}")
+    
+    # Convert HTML to JPEG
+    print(f"Converting HTML to JPEG...")
+    jpeg_result = html_to_jpeg(html_path, jpeg_path)
+    
+    return (html_path, jpeg_result)
 
 
 def generate_forex_from_api(template_path=None, output_dir="data/forex_data", standardized_data=None):
@@ -283,7 +348,7 @@ def generate_forex_from_api(template_path=None, output_dir="data/forex_data", st
         standardized_data: Optional pre-standardized data dictionary. If None, fetches fresh data.
         
     Returns:
-        Path to the generated HTML file
+        Tuple of (path to HTML file, path to JPEG file) or (path to HTML file, None) if JPEG conversion failed
     """
     if template_path is None:
         template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'forex_template.html')
