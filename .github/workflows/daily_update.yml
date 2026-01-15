@@ -30,6 +30,11 @@ jobs:
         playwright install chromium
         playwright install --with-deps chromium
     
+    - name: Create data directories
+      run: |
+        mkdir -p data/forex_data/HTML data/forex_data/JPEG data/forex_data/raw data/forex_data/processed
+        mkdir -p data/commodities_data/HTML data/commodities_data/JPEG data/commodities_data/raw data/commodities_data/processed
+    
     - name: Collect Commodity Data
       run: |
         python3 scripts/Mineral_Commodities_Data_Collection/daily_update.py
