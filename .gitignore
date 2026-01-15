@@ -158,11 +158,15 @@ ENV/
 
 # Project specific
 config/settings.py
-data/raw/*
-data/processed/*
+data/forex_data/raw/*
+data/forex_data/processed/*
+data/commodities_data/raw/*
+data/commodities_data/processed/*
 data/exports/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+!data/forex_data/raw/.gitkeep
+!data/forex_data/processed/.gitkeep
+!data/commodities_data/raw/.gitkeep
+!data/commodities_data/processed/.gitkeep
 !data/exports/.gitkeep
 
 # Google API credentials (never commit these!)
@@ -181,7 +185,7 @@ logs/*.log
 notes/
 
 # Historical data (can be large)
-data/historical/
+data/forex_data/historical/
 
 # RBA historical data imports
 data/rba_forex_data.db

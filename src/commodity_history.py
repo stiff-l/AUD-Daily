@@ -1,27 +1,27 @@
 """
-Currency history utilities.
+Commodity history utilities.
 
-Handles loading, validation, cleaning, and updating currency history data stored
-in CSV form. Supports both daily CSV (`data/forex_data/processed/currency_daily.csv`) and
-historical CSV (`data/forex_data/historical/currency_history.csv`).
+Handles loading, validation, cleaning, and updating commodity history data stored
+in CSV form. Supports daily CSV (`data/commodities_data/processed/commodity_daily.csv`).
 """
 
 from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import pandas as pd
 
 # Expected CSV columns
-REQUIRED_COLUMNS: Tuple[str, ...] = (
+REQUIRED_COLUMNS: tuple = (
     "date",
-    "usd_rate",
-    "eur_rate",
-    "cny_rate",
-    "sgd_rate",
-    "jpy_rate",
+    "gold_price",
+    "silver_price",
+    "copper_price",
+    "aluminium_price",
+    "zinc_price",
+    "nickel_price",
     "timestamp",
 )
 
@@ -33,38 +33,34 @@ def _coerce_numeric(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     return df
 
 
-def load_currency_history_csv(csv_path: str = "data/forex_data/processed/currency_daily.csv") -> pd.DataFrame:
+def load_commodity_history_csv(csv_path: str = "data/commodities_data/processed/commodity_daily.csv") -> pd.DataFrame:
     """
-    Load and validate currency history CSV.
+    Load and validate commodity history CSV.
 
     Returns a cleaned DataFrame with:
     - date: datetime64[ns]
-    - numeric rate columns (AUD base)
+    - numeric price columns (AUD prices)
     - timestamp: datetime64[ns]
     - sorted by date ascending
     - duplicates on date resolved by keeping the most recent timestamp
     """
     if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Currency history CSV not found: {csv_path}")
+        raise FileNotFoundError(f"Commodity history CSV not found: {csv_path}")
 
     df = pd.read_csv(csv_path)
 
-    # Check for required columns (excluding optional ones like jpy_rate for backward compatibility)
-    required_core = ["date", "usd_rate", "eur_rate", "cny_rate", "sgd_rate", "timestamp"]
+    # Check for required columns
+    required_core = ["date", "gold_price", "silver_price", "copper_price", "aluminium_price", "zinc_price", "nickel_price", "timestamp"]
     missing = [c for c in required_core if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing required columns in currency CSV: {missing}")
-    
-    # Add jpy_rate column if it doesn't exist (for backward compatibility)
-    if "jpy_rate" not in df.columns:
-        df["jpy_rate"] = pd.NA
+        raise ValueError(f"Missing required columns in commodity CSV: {missing}")
 
     # Normalize dates and timestamps
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
-    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate", "jpy_rate"]
-    df = _coerce_numeric(df, rate_cols)
+    price_cols = ["gold_price", "silver_price", "copper_price", "aluminium_price", "zinc_price", "nickel_price"]
+    df = _coerce_numeric(df, price_cols)
 
     # Drop rows with invalid dates
     df = df.dropna(subset=["date"])
@@ -72,30 +68,30 @@ def load_currency_history_csv(csv_path: str = "data/forex_data/processed/currenc
     # Deduplicate by date, keeping the most recent timestamp
     df = df.sort_values(["date", "timestamp"]).drop_duplicates(subset=["date"], keep="last")
 
-    # Basic sanity: rates should be positive
-    for col in rate_cols:
+    # Basic sanity: prices should be positive
+    for col in price_cols:
         df.loc[df[col] <= 0, col] = pd.NA
 
     df = df.sort_values("date").reset_index(drop=True)
     return df
 
 
-def validate_currency_history(csv_path: str = "data/forex_data/processed/currency_daily.csv") -> Dict[str, List[str]]:
+def validate_commodity_history(csv_path: str = "data/commodities_data/processed/commodity_daily.csv") -> Dict[str, List[str]]:
     """
-    Validate the currency history CSV and return any issues found.
+    Validate the commodity history CSV and return any issues found.
     """
     issues: Dict[str, List[str]] = {"errors": [], "warnings": []}
 
     try:
-        df = load_currency_history_csv(csv_path)
+        df = load_commodity_history_csv(csv_path)
     except Exception as exc:  # pylint: disable=broad-except
         issues["errors"].append(str(exc))
         return issues
 
     # Check for missing values
-    rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate", "jpy_rate"]
-    missing_mask = df[rate_cols].isna()
-    for col in rate_cols:
+    price_cols = ["gold_price", "silver_price", "copper_price", "aluminium_price", "zinc_price", "nickel_price"]
+    missing_mask = df[price_cols].isna()
+    for col in price_cols:
         missing_rows = df.index[missing_mask[col]].tolist()
         if missing_rows:
             issues["warnings"].append(f"{col} has missing/invalid values at rows: {missing_rows}")
@@ -114,53 +110,44 @@ def validate_currency_history(csv_path: str = "data/forex_data/processed/currenc
     return issues
 
 
-def upsert_currency_history_row(
+def upsert_commodity_history_row(
     csv_path: str,
     date: datetime,
-    usd_rate: float | None = None,
-    eur_rate: float | None = None,
-    cny_rate: float | None = None,
-    sgd_rate: float | None = None,
-    jpy_rate: float | None = None,
+    gold_price: float | None = None,
+    silver_price: float | None = None,
+    copper_price: float | None = None,
+    aluminium_price: float | None = None,
+    zinc_price: float | None = None,
+    nickel_price: float | None = None,
     timestamp: datetime | None = None,
 ) -> pd.DataFrame:
     """
-    Insert or update a currency row for a given date, returning the new DataFrame.
+    Insert or update a commodity row for a given date, returning the new DataFrame.
     """
     timestamp = timestamp or datetime.now(timezone.utc)
 
     # Load existing (or create new DataFrame)
     if os.path.exists(csv_path):
-        df = load_currency_history_csv(csv_path)
+        df = load_commodity_history_csv(csv_path)
     else:
         df = pd.DataFrame(columns=REQUIRED_COLUMNS)
 
-    # Round rates to 3 decimal places for currency_daily.csv
-    round_to_3 = csv_path.endswith("currency_daily.csv")
-    
-    def round_rate(rate):
-        """Round rate to 3 decimal places if not None."""
-        if rate is not None:
-            return round(float(rate), 3)
-        return pd.NA
-    
     new_row = {
         "date": pd.to_datetime(date).date(),
-        "usd_rate": round_rate(usd_rate) if round_to_3 else (float(usd_rate) if usd_rate is not None else pd.NA),
-        "eur_rate": round_rate(eur_rate) if round_to_3 else (float(eur_rate) if eur_rate is not None else pd.NA),
-        "cny_rate": round_rate(cny_rate) if round_to_3 else (float(cny_rate) if cny_rate is not None else pd.NA),
-        "sgd_rate": round_rate(sgd_rate) if round_to_3 else (float(sgd_rate) if sgd_rate is not None else pd.NA),
-        "jpy_rate": round_rate(jpy_rate) if round_to_3 else (float(jpy_rate) if jpy_rate is not None else pd.NA),
+        "gold_price": float(gold_price) if gold_price is not None else pd.NA,
+        "silver_price": float(silver_price) if silver_price is not None else pd.NA,
+        "copper_price": float(copper_price) if copper_price is not None else pd.NA,
+        "aluminium_price": float(aluminium_price) if aluminium_price is not None else pd.NA,
+        "zinc_price": float(zinc_price) if zinc_price is not None else pd.NA,
+        "nickel_price": float(nickel_price) if nickel_price is not None else pd.NA,
         "timestamp": pd.to_datetime(timestamp),
     }
 
     # Create new row DataFrame with compatible dtypes
-    # If df is empty, create with explicit structure; otherwise match existing dtypes
     if df.empty:
         new_df = pd.DataFrame([new_row])
         df = new_df
     else:
-        # Create new DataFrame with same dtypes as existing df to avoid concat warnings
         new_df = pd.DataFrame([new_row])
         # Align dtypes to match existing DataFrame
         for col in df.columns:
@@ -168,8 +155,12 @@ def upsert_currency_history_row(
                 new_df[col] = new_df[col].astype(df[col].dtype, errors="ignore")
         
         # Append and deduplicate by date (keep newest timestamp)
-        # Use pd.concat with sort=False to avoid FutureWarning
-        df = pd.concat([df, new_df], ignore_index=True, sort=False)
+        # Suppress FutureWarning about empty/all-NA concatenation
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            df = pd.concat([df, new_df], ignore_index=True, sort=False)
+    
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
     df = df.sort_values(["date", "timestamp"]).drop_duplicates(subset=["date"], keep="last")
@@ -183,15 +174,7 @@ def upsert_currency_history_row(
     # Reorder columns to match REQUIRED_COLUMNS
     df = df[list(REQUIRED_COLUMNS)]
     
-    # Round existing rates to 3 decimal places for currency_daily.csv
-    if round_to_3:
-        rate_cols = ["usd_rate", "eur_rate", "cny_rate", "sgd_rate", "jpy_rate"]
-        for col in rate_cols:
-            if col in df.columns:
-                df[col] = df[col].apply(lambda x: round(x, 3) if pd.notna(x) and isinstance(x, (int, float)) else x)
-    
     # Save back to CSV
     os.makedirs(os.path.dirname(csv_path), exist_ok=True)
     df.to_csv(csv_path, index=False)
     return df
-

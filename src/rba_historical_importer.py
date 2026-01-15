@@ -21,7 +21,13 @@ import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from config import settings
+    try:
+        from config import settings
+    except ImportError:
+        # Create minimal settings if config not available
+        class MinimalSettings:
+            pass
+        settings = MinimalSettings()
 except ImportError:
     # Fallback if config not available
     settings = None
@@ -57,7 +63,7 @@ class RBAForexImporter:
         "https://www.rba.gov.au/statistics/tables/xls-hist/2023-current.xls",
     ]
     
-    def __init__(self, db_path: str = "data/historical/rba_forex_data.db", download_dir: str = "data/historical/rba_downloads"):
+    def __init__(self, db_path: str = "data/forex_data/historical/rba_forex_data.db", download_dir: str = "data/forex_data/historical/rba_downloads"):
         """
         Initialize the importer
         
@@ -498,7 +504,7 @@ class RBAForexImporter:
         
         return df
     
-    def export_to_csv(self, csv_path: str = "data/historical/currency_history.csv"):
+    def export_to_csv(self, csv_path: str = "data/forex_data/historical/currency_history.csv"):
         """
         Export RBA historical data to CSV format matching existing currency_history.csv format.
         
