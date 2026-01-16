@@ -108,9 +108,9 @@ def query_csv(date=None, start_date=None, end_date=None, csv_type="daily"):
         csv_type: "daily" for daily CSV, "historical" for historical CSV
     """
     if csv_type == "historical":
-        csv_path = "data/historical/currency_history.csv"
+        csv_path = "data/forex_data/historical/currency_history.csv"
     else:
-        csv_path = "data/processed/currency_daily.csv"
+        csv_path = "data/forex_data/processed/currency_daily.csv"
     
     if not os.path.exists(csv_path):
         print(f"CSV file not found: {csv_path}")

@@ -1,0 +1,178 @@
+# AUD Daily Tracker - Cursor Rules
+
+## Project Overview
+This project generates daily HTML and JPEG outputs for forex and commodity data tracking. Outputs must maintain strict formatting and quality standards.
+
+## Output Requirements
+
+### HTML Output
+- **Fixed Dimensions**: All HTML files must be exactly 1080px × 1350px
+- **Template System**: Use placeholder-based templates (e.g., `{{FULL_DATE}}`, `{{USD_RATE}}`)
+- **Font**: Montserrat (weight 700) from Google Fonts
+- **Encoding**: UTF-8
+- **Viewport**: Include proper viewport meta tag for consistent rendering
+- **Color Schemes**:
+  - Forex: Background #634bff (purple)
+  - Commodities: Background #4caf50 (green)
+
+### JPEG Output
+- **Dimensions**: Must match HTML (1080px × 1350px)
+- **Quality**: JPEG quality 95 (high quality for social media)
+- **Conversion Method**: Prefer Playwright (Chromium) over Selenium
+- **Rendering Wait**: 1500ms minimum for fonts/images to load
+- **Format**: JPEG (not PNG)
+
+### Data Formatting
+- **Forex Rates**: 3 decimal places (e.g., 0.661)
+- **Commodity Prices**: 2 decimal places with comma thousands separator (e.g., 3,782.00)
+- **Date Format**: Full date as "Month Day, Year" (e.g., "January 15, 2026")
+- **Date Filenames**: YYYY-MM-DD format (e.g., forex_2026-01-15.html)
+
+### Placeholder Standards
+- Use double curly braces: `{{PLACEHOLDER_NAME}}`
+- Support both `{{PLACEHOLDER}}` and `{PLACEHOLDER}` for backward compatibility
+- Currency placeholders: `{{USD_RATE}}`, `{{EUR_RATE}}`, `{{JPY_RATE}}`, `{{CNY_RATE}}`, `{{SGD_RATE}}`
+- Commodity placeholders: `{{GOLD_RATE}}`, `{{SILVER_RATE}}`, `{{COPPER_RATE}}`, `{{ALUMINIUM_RATE}}`, `{{NICKEL_RATE}}`
+- Arrow placeholders: `{{CURRENCY_ARROW}}` or `{{COMMODITY_ARROW}}`
+
+### Arrow Indicators
+- Green up arrow: Value increased from previous day
+- Red down arrow: Value decreased from previous day
+- White dash: No change
+- Only show arrows when previous day data is available
+
+## Code Standards
+
+### HTML Generation Scripts
+- Always validate template file exists before processing
+- Check for arrow placeholders in template to enable comparison logic
+- Preserve date from input data when generating historical outputs
+- Create output directories (HTML/ and JPEG/) if they don't exist
+- Return tuple: (html_path, jpeg_path) or (html_path, None) if JPEG fails
+
+### Error Handling
+- Gracefully handle missing previous day data (don't show arrows)
+- Provide clear error messages for missing templates
+- Log warnings when data is unavailable
+- Never fail silently on critical errors
+
+### File Naming
+- HTML: `forex_YYYY-MM-DD.html` or `commodity_YYYY-MM-DD.html`
+- JPEG: `forex_YYYY-MM-DD.jpg` or `commodity_YYYY-MM-DD.jpg`
+- Store in subdirectories: `data/{type}_data/HTML/` and `data/{type}_data/JPEG/`
+
+## When Editing HTML/JPEG Generation Code
+
+1. **Maintain Dimensions**: Never change the 1080×1350px requirement without explicit user request
+2. **Preserve Quality**: Keep JPEG quality at 95 unless user requests different quality
+3. **Template Compatibility**: Ensure placeholder replacement works with both `{{}}` and `{}` formats
+4. **Font Loading**: Include proper wait times (1500ms+) for Google Fonts to load before screenshot
+5. **Color Consistency**: Maintain brand colors (purple for forex, green for commodities)
+6. **Data Validation**: Always validate data exists before formatting (handle None/NA values)
+7. **Backward Compatibility**: Support both old and new placeholder formats when possible
+
+## Testing Outputs
+
+When generating HTML/JPEG:
+- Verify dimensions are exactly 1080×1350px
+- Check all placeholders are replaced (no `{{}}` remaining)
+- Ensure fonts render correctly in JPEG
+- Validate date formatting matches expected format
+- Confirm arrow indicators only appear when previous day data exists
+- Test with missing data to ensure graceful degradation
+
+## Dependencies
+- Playwright (primary) for HTML→JPEG conversion
+- Selenium (fallback) if Playwright unavailable
+- PIL/Pillow for image format conversion (Selenium fallback)
+
+## Workflow Standardization
+
+### Standardized Daily Update Workflow
+
+All daily update scripts follow this exact workflow sequence:
+
+1. **Collect Data** - Fetch current day's data from APIs
+2. **Standardize Data** - Format data to standard structure
+3. **Save Raw JSON** - Store raw API response with timestamp (`data/{type}_data/raw/`)
+4. **Cleanup Raw Files** - Keep max 2 raw files per date
+5. **Save Processed JSON** - Store standardized daily data (`data/{type}_data/processed/{type}_daily_YYYY-MM-DD.json`)
+6. **Update CSV** - Append/update row in daily CSV table (`data/{type}_data/processed/{type}_daily.csv`)
+7. **Generate HTML** - Create HTML from template with data (`data/{type}_data/HTML/{type}_YYYY-MM-DD.html`)
+8. **Generate JPEG** - Convert HTML to JPEG image (`data/{type}_data/JPEG/{type}_YYYY-MM-DD.jpg`)
+
+### Script Execution Commands
+
+#### Run Today All (Both Forex + Commodities)
+**Command**: `python3 scripts/daily_update_all.py`
+**What it does**:
+- Runs forex data collection and generation
+- Runs commodities data collection and generation
+- Both workflows execute independently (one failure doesn't stop the other)
+- Returns exit code 0 if both succeed, 1 if any fail
+
+**Outputs**:
+- Forex: Raw JSON, processed JSON, CSV update, HTML, JPEG
+- Commodities: Raw JSON, processed JSON, CSV update, HTML, JPEG
+
+#### Run Forex Only
+**Command**: `python3 scripts/Forex_Data_Collection/daily_update.py`
+**What it does**:
+- Collects forex data (USD, EUR, CNY, SGD, JPY)
+- Saves raw JSON → processed JSON → updates CSV
+- Generates HTML and JPEG for forex
+
+**Outputs**:
+- `data/forex_data/raw/aud_data_YYYYMMDD_HHMMSS.json`
+- `data/forex_data/processed/currency_daily_YYYY-MM-DD.json`
+- `data/forex_data/processed/currency_daily.csv` (updated)
+- `data/forex_data/HTML/forex_YYYY-MM-DD.html`
+- `data/forex_data/JPEG/forex_YYYY-MM-DD.jpg`
+
+#### Run Commodities Only
+**Command**: `python3 scripts/Mineral_Commodities_Data_Collection/daily_update.py`
+**What it does**:
+- Collects commodity data (Gold, Silver, Copper, Aluminium, Nickel)
+- Saves raw JSON → processed JSON → updates CSV
+- Generates HTML and JPEG for commodities
+
+**Outputs**:
+- `data/commodities_data/raw/commodity_data_YYYYMMDD_HHMMSS.json`
+- `data/commodities_data/processed/commodity_daily_YYYY-MM-DD.json`
+- `data/commodities_data/processed/commodity_daily.csv` (updated)
+- `data/commodities_data/HTML/commodity_YYYY-MM-DD.html`
+- `data/commodities_data/JPEG/commodity_YYYY-MM-DD.jpg`
+
+### Automated Execution (GitHub Actions)
+
+**Workflow File**: `.github/workflows/daily_update.yml`
+**Schedule**: Daily at 5pm Cairns time (7am UTC) - cron: `0 7 * * *`
+**Manual Trigger**: Available via GitHub Actions UI (workflow_dispatch)
+
+**What it does**:
+1. Checks out repository
+2. Sets up Python 3.12
+3. Installs dependencies (requirements.txt)
+4. Installs Playwright Chromium browser
+5. Creates necessary data directories
+6. Runs `scripts/daily_update_all.py`
+7. Commits and pushes HTML, JPEG, and CSV files to repository
+
+**Note**: Raw and processed JSON files are in `.gitignore` and not committed.
+
+### Workflow Requirements
+
+When modifying daily update scripts, ensure:
+1. **All steps execute in order** - Never skip steps (e.g., don't generate HTML without updating CSV)
+2. **Error handling** - HTML/JPEG generation failures should warn but not fail the entire update
+3. **Idempotency** - Running the same script twice should produce the same results (overwrites are OK)
+4. **Date handling** - Always use today's date unless explicitly generating for a historical date
+5. **CSV updates** - Always append/update the daily CSV table, never overwrite the entire file
+6. **Output validation** - Verify all expected outputs are created before script completion
+
+### Manual Execution Guidelines
+
+- Scripts can be run manually at any time (not restricted to COB time)
+- Scripts will warn if not run at COB time but proceed anyway
+- Each script is independent and can be run separately
+- `daily_update_all.py` orchestrates both but can be bypassed by running individual scripts

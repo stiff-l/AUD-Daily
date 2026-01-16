@@ -20,11 +20,29 @@ from src.commodity_formatter import standardize_commodity_data
 from src.commodity_history import load_commodity_history_csv
 import pandas as pd
 
+# Import HTML utilities
 try:
-    from playwright.sync_api import sync_playwright
-    PLAYWRIGHT_AVAILABLE = True
+    from .html_utils import (
+        generate_arrow_html as generate_arrow_html_base,
+        html_to_jpeg,
+        PLAYWRIGHT_AVAILABLE,
+        SELENIUM_AVAILABLE
+    )
 except ImportError:
-    PLAYWRIGHT_AVAILABLE = False
+    try:
+        from html_utils import (
+            generate_arrow_html as generate_arrow_html_base,
+            html_to_jpeg,
+            PLAYWRIGHT_AVAILABLE,
+            SELENIUM_AVAILABLE
+        )
+    except ImportError:
+        from scripts.html_utils import (
+            generate_arrow_html as generate_arrow_html_base,
+            html_to_jpeg,
+            PLAYWRIGHT_AVAILABLE,
+            SELENIUM_AVAILABLE
+        )
 
 
 def format_price(price, decimals=2):
@@ -86,7 +104,6 @@ def get_previous_day_prices(current_date_str, csv_path="data/commodities_data/pr
                     "SILVER": row.get('silver_price') if pd.notna(row.get('silver_price')) else None,
                     "COPPER": row.get('copper_price') if pd.notna(row.get('copper_price')) else None,
                     "ALUMINIUM": row.get('aluminium_price') if pd.notna(row.get('aluminium_price')) else None,
-                    "ZINC": row.get('zinc_price') if pd.notna(row.get('zinc_price')) else None,
                     "NICKEL": row.get('nickel_price') if pd.notna(row.get('nickel_price')) else None,
                 }
                 # Verify we got at least one valid price
@@ -110,24 +127,7 @@ def generate_arrow_html(current_price, previous_price):
     Returns:
         HTML string for the arrow icon, or empty string if no comparison possible
     """
-    if current_price is None or previous_price is None:
-        return ""
-    
-    try:
-        current = float(current_price)
-        previous = float(previous_price)
-        
-        if current > previous:
-            # Price is up - green up arrow
-            return '<div class="commodity-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>'
-        elif current < previous:
-            # Price is down - red down arrow
-            return '<div class="commodity-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>'
-        else:
-            # No change - white dash
-            return '<div class="commodity-arrow arrow-neutral"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="3"/></svg></div>'
-    except (ValueError, TypeError):
-        return ""
+    return generate_arrow_html_base(current_price, previous_price, arrow_class="commodity-arrow")
 
 
 def replace_html_placeholders(html_content, data, include_arrows=False):
@@ -162,7 +162,6 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
         "SILVER": commodities.get("SILVER", {}).get("price_aud") if commodities.get("SILVER") else None,
         "COPPER": commodities.get("COPPER", {}).get("price_aud") if commodities.get("COPPER") else None,
         "ALUMINIUM": commodities.get("ALUMINIUM", {}).get("price_aud") if commodities.get("ALUMINIUM") else None,
-        "ZINC": commodities.get("ZINC", {}).get("price_aud") if commodities.get("ZINC") else None,
         "NICKEL": commodities.get("NICKEL", {}).get("price_aud") if commodities.get("NICKEL") else None,
     }
     
@@ -181,7 +180,7 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
         "{FULL_DATE}": full_date,
     }
     
-    for commodity in ["GOLD", "SILVER", "COPPER", "ALUMINIUM", "ZINC", "NICKEL"]:
+    for commodity in ["GOLD", "SILVER", "COPPER", "ALUMINIUM", "NICKEL"]:
         price_value = format_price(prices[commodity], decimals=2)
         replacements["{{" + commodity + "_RATE}}"] = price_value
         replacements["{" + commodity + "_RATE}"] = price_value
@@ -207,61 +206,7 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     return result
 
 
-def html_to_jpeg(html_path, jpeg_path, width=1080, height=1350):
-    """
-    Convert HTML file to JPEG image.
-    
-    Args:
-        html_path: Path to the HTML file
-        jpeg_path: Path where the JPEG should be saved
-        width: Width of the output image in pixels (default: 1080)
-        height: Height of the output image in pixels (default: 1350)
-        
-    Returns:
-        Path to the generated JPEG file, or None if conversion failed
-    """
-    if not PLAYWRIGHT_AVAILABLE:
-        print("Warning: playwright not available. Install with: pip install playwright && playwright install chromium")
-        return None
-    
-    try:
-        with sync_playwright() as p:
-            # Launch browser (try chromium, firefox, then webkit)
-            browser = None
-            for browser_type in [p.chromium, p.firefox, p.webkit]:
-                try:
-                    browser = browser_type.launch()
-                    break
-                except Exception:
-                    continue
-            
-            if browser is None:
-                raise Exception("Could not launch any browser (chromium, firefox, or webkit)")
-            
-            page = browser.new_page()
-            
-            # Set viewport size to match HTML dimensions
-            page.set_viewport_size({"width": width, "height": height})
-            
-            # Load HTML file (use file:// URL format)
-            html_abs_path = os.path.abspath(html_path)
-            # Convert Windows path separators to forward slashes for file:// URL
-            html_file_url = f"file://{html_abs_path.replace(os.sep, '/')}"
-            page.goto(html_file_url)
-            
-            # Wait for page to load (including fonts and images)
-            page.wait_for_load_state("networkidle")
-            
-            # Take full page screenshot as JPEG (captures entire content, not just viewport)
-            page.screenshot(path=jpeg_path, type="jpeg", quality=95, full_page=True)
-            
-            browser.close()
-        
-        print(f"✓ JPEG generated successfully: {jpeg_path}")
-        return jpeg_path
-    except Exception as e:
-        print(f"Warning: Error converting HTML to JPEG: {e}")
-        return None
+# html_to_jpeg is imported from html_utils
 
 
 def generate_mineral_commodities_html(template_path, output_dir="data/commodities_data", standardized_data=None):
@@ -302,7 +247,7 @@ def generate_mineral_commodities_html(template_path, output_dir="data/commoditie
     # Check if template has arrow placeholders by looking for ARROW placeholders in the content
     is_arrow_template = any(f"{{{{{commodity}_ARROW}}}}" in template_content or 
                             f"{{{commodity}_ARROW}}" in template_content
-                            for commodity in ["GOLD", "SILVER", "COPPER", "ALUMINIUM", "ZINC", "NICKEL"])
+                            for commodity in ["GOLD", "SILVER", "COPPER", "ALUMINIUM", "NICKEL"])
     
     if is_arrow_template:
         print("Arrow placeholders detected in template - will include arrows based on previous day's prices")
@@ -348,12 +293,12 @@ def main():
     parser.add_argument(
         "template",
         nargs="?",
-        help="Path to HTML template file (default: templates/mineral_commodities_template.html)"
+        help="Path to HTML template file (default: templates/commodities_m_template.html)"
     )
     parser.add_argument(
         "-o", "--output",
-        default="data/mineral_commodities",
-        help="Output directory (default: data/mineral_commodities)"
+        default="data/commodities_data",
+        help="Output directory (default: data/commodities_data)"
     )
     
     args = parser.parse_args()
@@ -362,8 +307,8 @@ def main():
     template_path = args.template
     if not template_path:
         possible_paths = [
-            "templates/mineral_commodities_template.html",
-            "mineral_commodities_template.html",
+            "templates/commodities_m_template.html",
+            "commodities_m_template.html",
             "template.html"
         ]
         for path in possible_paths:
@@ -374,8 +319,8 @@ def main():
         if not template_path:
             print("Error: No template file specified and no default template found.")
             print("Please provide the template path as an argument or place it at:")
-            print("  - templates/mineral_commodities_template.html")
-            print("  - mineral_commodities_template.html")
+            print("  - templates/commodities_m_template.html")
+            print("  - commodities_m_template.html")
             sys.exit(1)
     
     try:

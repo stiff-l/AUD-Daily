@@ -14,8 +14,8 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from scripts.generate_forex_html import generate_forex_html
-from src.data_collector import collect_historical_data_for_date
-from src.data_formatter import standardize_data
+from src.currency_collector import collect_historical_data_for_date
+from src.currency_formatter import standardize_data
 from src.rba_historical_importer import RBAForexImporter
 
 

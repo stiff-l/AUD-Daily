@@ -15,16 +15,35 @@ from pathlib import Path
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.data_collector import fetch_currency_rates
-from src.data_formatter import standardize_data
+from src.currency_collector import fetch_currency_rates
+from src.currency_formatter import standardize_data
 from src.currency_history import load_currency_history_csv
+from src.currency_storage import save_raw_data, save_daily_data, save_to_currency_table
 import pandas as pd
 
+# Import HTML utilities
 try:
-    from playwright.sync_api import sync_playwright
-    PLAYWRIGHT_AVAILABLE = True
+    from .html_utils import (
+        generate_arrow_html as generate_arrow_html_base,
+        html_to_jpeg,
+        PLAYWRIGHT_AVAILABLE,
+        SELENIUM_AVAILABLE
+    )
 except ImportError:
-    PLAYWRIGHT_AVAILABLE = False
+    try:
+        from html_utils import (
+            generate_arrow_html as generate_arrow_html_base,
+            html_to_jpeg,
+            PLAYWRIGHT_AVAILABLE,
+            SELENIUM_AVAILABLE
+        )
+    except ImportError:
+        from scripts.html_utils import (
+            generate_arrow_html as generate_arrow_html_base,
+            html_to_jpeg,
+            PLAYWRIGHT_AVAILABLE,
+            SELENIUM_AVAILABLE
+        )
 
 
 def fetch_all_currency_rates():
@@ -54,7 +73,7 @@ def format_rate(rate, decimals=4):
     return f"{rate:.{decimals}f}"
 
 
-def get_previous_day_rates(current_date_str, csv_path="data/processed/currency_daily.csv"):
+def get_previous_day_rates(current_date_str, csv_path="data/forex_data/processed/currency_daily.csv"):
     """
     Get currency rates for the previous day (n-1).
     
@@ -120,24 +139,7 @@ def generate_arrow_html(current_rate, previous_rate):
     Returns:
         HTML string for the arrow icon, or empty string if no comparison possible
     """
-    if current_rate is None or previous_rate is None:
-        return ""
-    
-    try:
-        current = float(current_rate)
-        previous = float(previous_rate)
-        
-        if current > previous:
-            # Price is up - green up arrow
-            return '<div class="currency-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>'
-        elif current < previous:
-            # Price is down - red down arrow
-            return '<div class="currency-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>'
-        else:
-            # No change - white dash
-            return '<div class="currency-arrow arrow-neutral"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="3"/></svg></div>'
-    except (ValueError, TypeError):
-        return ""
+    return generate_arrow_html_base(current_rate, previous_rate, arrow_class="currency-arrow")
 
 
 def replace_html_placeholders(html_content, data, include_arrows=False):
@@ -216,51 +218,7 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     return result
 
 
-def html_to_jpeg(html_path, jpeg_path, width=1080, height=1350):
-    """
-    Convert HTML file to JPEG image.
-    
-    Args:
-        html_path: Path to the HTML file
-        jpeg_path: Path where the JPEG should be saved
-        width: Width of the output image in pixels (default: 1080)
-        height: Height of the output image in pixels (default: 1350)
-        
-    Returns:
-        Path to the generated JPEG file, or None if conversion failed
-    """
-    if not PLAYWRIGHT_AVAILABLE:
-        print("Warning: playwright not available. Install with: pip install playwright && playwright install chromium")
-        return None
-    
-    try:
-        with sync_playwright() as p:
-            # Launch browser
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            
-            # Set viewport size to match HTML dimensions
-            page.set_viewport_size({"width": width, "height": height})
-            
-            # Load HTML file (use file:// URL format)
-            html_abs_path = os.path.abspath(html_path)
-            # Convert Windows path separators to forward slashes for file:// URL
-            html_file_url = f"file://{html_abs_path.replace(os.sep, '/')}"
-            page.goto(html_file_url)
-            
-            # Wait for page to load (including fonts and images)
-            page.wait_for_load_state("networkidle")
-            
-            # Take full page screenshot as JPEG (captures entire content, not just viewport)
-            page.screenshot(path=jpeg_path, type="jpeg", quality=95, full_page=True)
-            
-            browser.close()
-        
-        print(f"✓ JPEG generated successfully: {jpeg_path}")
-        return jpeg_path
-    except Exception as e:
-        print(f"Warning: Error converting HTML to JPEG: {e}")
-        return None
+# html_to_jpeg is imported from html_utils
 
 
 def generate_forex_html(template_path, output_dir="data/forex_data", standardized_data=None):
@@ -286,17 +244,56 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
         template_content = f.read()
     
     # Use provided data or fetch fresh data
+    raw_data = None
     if standardized_data is None:
         print("Fetching daily forex rates...")
         data = fetch_all_currency_rates()
-        
-        # Standardize data
-        standardized_data = standardize_data({
+        raw_data = {
             "collection_date": datetime.now().isoformat(),
             "currencies": data
-        })
+        }
+        
+        # Standardize data
+        standardized_data = standardize_data(raw_data)
     else:
         print("Using provided forex data...")
+        # If standardized_data is provided, we still need raw_data for saving
+        # Create a raw_data structure from standardized_data
+        raw_data = {
+            "collection_date": standardized_data.get("timestamp", datetime.now().isoformat()),
+            "currencies": {
+                "timestamp": standardized_data.get("timestamp", datetime.now().isoformat()),
+                "currencies": standardized_data.get("currencies", {})
+            }
+        }
+    
+    # Save raw and processed data, and update CSVs
+    try:
+        print("\nSaving data files...")
+        # Determine base directory for data storage
+        # If output_dir is "data/forex_data", use it directly; otherwise construct path
+        if "forex_data" in output_dir:
+            base_data_dir = output_dir
+        else:
+            base_data_dir = "data/forex_data"
+        
+        # Save raw data (with timestamp)
+        if raw_data:
+            raw_output_dir = os.path.join(base_data_dir, "raw")
+            save_raw_data(raw_data, output_dir=raw_output_dir)
+        
+        # Save daily data (date-based filename, overwrites if exists)
+        processed_output_dir = os.path.join(base_data_dir, "processed")
+        save_daily_data(standardized_data, output_dir=processed_output_dir)
+        
+        # Save to currency history table (CSV)
+        save_to_currency_table(standardized_data)
+        print("✓ Data files saved successfully")
+    except Exception as e:
+        print(f"⚠ Warning: Error saving data files: {e}")
+        # Don't fail HTML generation if data saving fails
+        import traceback
+        traceback.print_exc()
     
     # Check if template has arrow placeholders by looking for ARROW placeholders in the content
     is_arrow_template = any(f"{{{{{currency}_ARROW}}}}" in template_content or 

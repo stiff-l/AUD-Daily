@@ -25,13 +25,15 @@ AUD-Daily/
 ├── config/                   # Configuration files
 │   └── settings.py           # API keys
 ├── src/                      # Source code
-│   ├── data_collector.py     # Fetch currency data from APIs
-│   ├── data_formatter.py     # Format and standardize data
-│   ├── data_storage.py       # Save data to files and CSV tables
+│   ├── currency_collector.py # Fetch currency data from APIs
+│   ├── currency_formatter.py # Format and standardize data
+│   ├── currency_storage.py   # Save data to files and CSV tables
 │   └── currency_history.py  # CSV table management for historical data
 ├── data/                     # Data storage
-│   ├── raw/                  # Raw data files (timestamped JSON)
-│   ├── processed/            # Processed data (date-based JSON + CSV tables)
+│   └── forex_data/           # Forex data storage
+│       ├── raw/              # Raw data files (timestamped JSON)
+│       ├── processed/        # Processed data (date-based JSON + CSV tables)
+│       └── historical/       # Historical RBA data (SQLite + CSV)
 ├── scripts/                  # Utility scripts
 │   ├── daily_update.py       # Daily data collection (manual or scheduled)
 │   ├── view_data.py          # View collected data
@@ -107,13 +109,13 @@ python scripts/view_data.py --format json
 The system saves data in multiple formats:
 
 **Daily Updates (Automatically updated):**
-1. **Raw JSON** (`data/raw/`) - Original API responses with timestamps
-2. **Processed JSON** (`data/processed/aud_daily_*.json`) - Standardized daily data files
-3. **Daily CSV** (`data/processed/currency_daily.csv`) - Daily updated table with one row per day
+1. **Raw JSON** (`data/forex_data/raw/`) - Original API responses with timestamps
+2. **Processed JSON** (`data/forex_data/processed/aud_daily_*.json`) - Standardized daily data files
+3. **Daily CSV** (`data/forex_data/processed/currency_daily.csv`) - Daily updated table with one row per day
 
 **Historical (Static - manually updated):**
-1. **Historical Database** (`data/historical/rba_forex_data.db`) - RBA historical SQLite database
-2. **Historical CSV** (`data/historical/currency_history.csv`) - Historical CSV exported from RBA database
+1. **Historical Database** (`data/forex_data/historical/rba_forex_data.db`) - RBA historical SQLite database
+2. **Historical CSV** (`data/forex_data/historical/currency_history.csv`) - Historical CSV exported from RBA database
 
 Each day's data includes:
 - Date and timestamp

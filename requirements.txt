@@ -17,6 +17,12 @@ pytz>=2023.3
 openpyxl>=3.1.0
 xlrd>=2.0.1  # Required for reading .xls files (Excel 97-2003 format)
 
-# HTML to image conversion
-playwright>=1.40.0
+# HTML to image conversion (Selenium is more reliable than Playwright)
+selenium>=4.15.0
+playwright>=1.40.0  # Fallback option
+Pillow>=10.0.0  # For PNG to JPEG conversion
+
+# Web scraping (TradingEconomics)
+cloudscraper>=1.2.71
+beautifulsoup4>=4.12.0
 

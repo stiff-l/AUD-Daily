@@ -8,6 +8,12 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 import json
 
+# Import formatter utilities
+try:
+    from .formatter_utils import extract_date_from_data
+except ImportError:
+    from src.formatter_utils import extract_date_from_data
+
 
 def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -26,41 +32,8 @@ def standardize_data(data: Dict[str, Any]) -> Dict[str, Any]:
         "currencies": {}
     }
     
-    # If data already has a 'date' field (already standardized), use it
-    if "date" in data and data["date"]:
-        standardized["date"] = data["date"]
-    
-    # Extract date from currency data first (for historical dates)
-    # Then fall back to collection_date or current date
-    historical_date = None
-    if not standardized["date"] and "currencies" in data:
-        currencies_data = data["currencies"]
-        if isinstance(currencies_data, dict) and "currencies" in currencies_data:
-            currencies_data = currencies_data["currencies"]
-            # Get the date from the first currency that has a date
-            for symbol, info in currencies_data.items():
-                if isinstance(info, dict) and "date" in info:
-                    historical_date = info.get("date")
-                    break
-        else:
-            # Data might already be standardized - check currencies directly
-            for symbol, info in currencies_data.items():
-                if isinstance(info, dict) and "date" in info:
-                    historical_date = info.get("date")
-                    break
-    
-    # Use historical date if found, otherwise use collection_date or current date
-    if not standardized["date"]:
-        if historical_date:
-            standardized["date"] = historical_date
-        elif "collection_date" in data:
-            try:
-                date_obj = datetime.fromisoformat(data["collection_date"].replace("Z", "+00:00"))
-                standardized["date"] = date_obj.strftime("%Y-%m-%d")
-            except:
-                standardized["date"] = datetime.now().strftime("%Y-%m-%d")
-        else:
-            standardized["date"] = datetime.now().strftime("%Y-%m-%d")
+    # Extract date using shared utility
+    standardized["date"] = extract_date_from_data(data, data_key="currencies")
     
     # Standardize currencies (USD, EUR, CNY, SGD, JPY)
     if "currencies" in data:

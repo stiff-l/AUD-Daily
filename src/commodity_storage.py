@@ -4,10 +4,8 @@ Commodity Storage Module
 Handles saving and loading commodity data to/from files and tables.
 """
 
-import json
 import os
 from datetime import datetime
-from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Import formatter for standardization
@@ -32,10 +30,23 @@ except ImportError:
     except ImportError:
         upsert_commodity_history_row = None
 
-
-def ensure_directory_exists(directory: str) -> None:
-    """Create directory if it doesn't exist."""
-    Path(directory).mkdir(parents=True, exist_ok=True)
+# Import base storage utilities
+try:
+    from .base_storage import (
+        ensure_directory_exists,
+        save_raw_data_generic,
+        save_daily_data_generic,
+        load_data_generic,
+        load_latest_data_generic
+    )
+except ImportError:
+    from src.base_storage import (
+        ensure_directory_exists,
+        save_raw_data_generic,
+        save_daily_data_generic,
+        load_data_generic,
+        load_latest_data_generic
+    )
 
 
 def save_raw_commodity_data(data: Dict[str, Any], output_dir: str = "data/commodities_data/raw") -> str:
@@ -49,19 +60,7 @@ def save_raw_commodity_data(data: Dict[str, Any], output_dir: str = "data/commod
     Returns:
         Path to the saved file
     """
-    ensure_directory_exists(output_dir)
-    
-    # Create filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"commodity_data_{timestamp}.json"
-    filepath = os.path.join(output_dir, filename)
-    
-    # Save to JSON
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    
-    print(f"Commodity data saved to: {filepath}")
-    return filepath
+    return save_raw_data_generic(data, output_dir, filename_prefix="commodity_data")
 
 
 def save_daily_commodity_data(data: Dict[str, Any], output_dir: str = "data/commodities_data/processed") -> str:
@@ -76,22 +75,12 @@ def save_daily_commodity_data(data: Dict[str, Any], output_dir: str = "data/comm
     Returns:
         Path to the saved file
     """
-    ensure_directory_exists(output_dir)
-    
-    # Standardize data structure before saving
-    standardized_data = standardize_commodity_data(data)
-    
-    # Create filename with date only
-    date_str = standardized_data.get("date") or datetime.now().strftime("%Y-%m-%d")
-    filename = f"commodity_daily_{date_str}.json"
-    filepath = os.path.join(output_dir, filename)
-    
-    # Save to JSON
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(standardized_data, f, indent=2, ensure_ascii=False)
-    
-    print(f"Daily commodity data saved to: {filepath}")
-    return filepath
+    return save_daily_data_generic(
+        data,
+        output_dir,
+        standardize_func=standardize_commodity_data,
+        filename_prefix="commodity_daily"
+    )
 
 
 def load_commodity_data(filepath: str) -> Optional[Dict[str, Any]]:
@@ -104,16 +93,7 @@ def load_commodity_data(filepath: str) -> Optional[Dict[str, Any]]:
     Returns:
         Loaded data dictionary, or None if file doesn't exist
     """
-    if not os.path.exists(filepath):
-        print(f"File not found: {filepath}")
-        return None
-    
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Error loading file {filepath}: {e}")
-        return None
+    return load_data_generic(filepath)
 
 
 def load_latest_commodity_data(data_dir: str = "data/commodities_data/processed") -> Optional[Dict[str, Any]]:
@@ -126,18 +106,7 @@ def load_latest_commodity_data(data_dir: str = "data/commodities_data/processed"
     Returns:
         Most recent data dictionary, or None if no files found
     """
-    if not os.path.exists(data_dir):
-        return None
-    
-    # Find all JSON files
-    json_files = list(Path(data_dir).glob("commodity_daily_*.json"))
-    
-    if not json_files:
-        return None
-    
-    # Get the most recent file
-    latest_file = max(json_files, key=os.path.getctime)
-    return load_commodity_data(str(latest_file))
+    return load_latest_data_generic(data_dir, filename_pattern="commodity_daily_*.json")
 
 
 def save_to_commodity_table(data: Dict[str, Any], csv_path: str = "data/commodities_data/processed/commodity_daily.csv") -> str:
@@ -183,7 +152,6 @@ def save_to_commodity_table(data: Dict[str, Any], csv_path: str = "data/commodit
         silver_price = commodities.get("SILVER", {}).get("price_aud") if commodities.get("SILVER") else None
         copper_price = commodities.get("COPPER", {}).get("price_aud") if commodities.get("COPPER") else None
         aluminium_price = commodities.get("ALUMINIUM", {}).get("price_aud") if commodities.get("ALUMINIUM") else None
-        zinc_price = commodities.get("ZINC", {}).get("price_aud") if commodities.get("ZINC") else None
         nickel_price = commodities.get("NICKEL", {}).get("price_aud") if commodities.get("NICKEL") else None
         
         # Save to CSV
@@ -194,7 +162,6 @@ def save_to_commodity_table(data: Dict[str, Any], csv_path: str = "data/commodit
             silver_price=silver_price,
             copper_price=copper_price,
             aluminium_price=aluminium_price,
-            zinc_price=zinc_price,
             nickel_price=nickel_price,
             timestamp=timestamp_obj
         )

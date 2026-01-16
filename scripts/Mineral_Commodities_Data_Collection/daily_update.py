@@ -12,7 +12,6 @@ Designed to run at 5pm Cairns time (AEST - UTC+10) for COB updates.
 import sys
 import os
 from datetime import datetime
-import pytz
 
 # Add project root to path (go up two levels from scripts/Mineral_Commodities_Data_Collection/)
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -22,39 +21,24 @@ from src.commodity_collector import collect_all_commodity_data
 from src.commodity_storage import save_raw_commodity_data, save_daily_commodity_data, save_to_commodity_table
 from src.commodity_formatter import standardize_commodity_data
 from scripts.generate_mineral_commodities_html import generate_mineral_commodities_html
+from scripts.cleanup_raw_files import cleanup_raw_files
 
-
-def get_cairns_time():
-    """
-    Get current time in Cairns (AEST - UTC+10, no daylight saving).
-    
-    Returns:
-        datetime object in AEST timezone
-    """
-    # Cairns is in Queensland, which uses AEST (UTC+10) year-round
-    cairns_tz = pytz.timezone('Australia/Brisbane')  # Brisbane uses same timezone as Cairns
-    return datetime.now(cairns_tz)
-
-
-def is_cob_time():
-    """
-    Check if current time is close to COB (5pm Cairns time).
-    
-    Returns:
-        True if within 1 hour of 5pm AEST, False otherwise
-    """
-    cairns_time = get_cairns_time()
-    hour = cairns_time.hour
-    
-    # Check if it's around 5pm (17:00) - allow 1 hour window
-    return 16 <= hour <= 18
+# Import update utilities
+try:
+    from ..update_utils import get_cairns_time, is_cob_time
+except ImportError:
+    try:
+        from scripts.update_utils import get_cairns_time, is_cob_time
+    except ImportError:
+        # Fallback - import from parent directory
+        from update_utils import get_cairns_time, is_cob_time
 
 
 def main():
     """Main function to run daily commodity data collection."""
     print("=" * 60)
     print("AUD Daily Tracker - Mineral Commodities Data Collection")
-    print("Tracking: Gold, Silver, Copper, Aluminium, Zinc, Nickel")
+    print("Tracking: Gold, Silver, Copper, Aluminium, Nickel")
     print("=" * 60)
     
     cairns_time = get_cairns_time()
@@ -79,6 +63,14 @@ def main():
         print("\nSaving raw data...")
         save_raw_commodity_data(data, output_dir="data/commodities_data/raw")
         
+        # Cleanup raw files (keep max 2 per date)
+        try:
+            print("Cleaning up old raw files...")
+            cleanup_raw_files(verbose=False)
+        except Exception as e:
+            print(f"Warning: Error during cleanup: {e}")
+            # Don't fail the update if cleanup fails
+        
         # Save daily data (date-based filename, overwrites if exists)
         print("Saving daily data...")
         save_daily_commodity_data(standardized_data, output_dir="data/commodities_data/processed")
@@ -90,7 +82,7 @@ def main():
         # Generate mineral commodities HTML from template
         try:
             print("\nGenerating mineral commodities HTML...")
-            template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'mineral_commodities_template.html')
+            template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'commodities_m_template.html')
             if os.path.exists(template_path):
                 generate_mineral_commodities_html(template_path, output_dir="data/commodities_data", standardized_data=standardized_data)
             else:

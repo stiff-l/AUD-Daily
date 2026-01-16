@@ -36,11 +36,11 @@ def main():
     
     try:
         # Initialize importer
-        # Database will be stored in data/historical/rba_forex_data.db
-        # Downloaded Excel files will be stored in data/historical/rba_downloads/
+        # Database will be stored in data/forex_data/historical/rba_forex_data.db
+        # Downloaded Excel files will be stored in data/forex_data/historical/rba_downloads/
         importer = RBAForexImporter(
-            db_path="data/historical/rba_forex_data.db",
-            download_dir="data/historical/rba_downloads"
+            db_path="data/forex_data/historical/rba_forex_data.db",
+            download_dir="data/forex_data/historical/rba_downloads"
         )
         
         # Run import
@@ -50,7 +50,7 @@ def main():
         print("Import complete!")
         print("=" * 60)
         print(f"SQLite database: {importer.db_path}")
-        print(f"CSV file: data/historical/currency_history.csv")
+        print(f"CSV file: data/forex_data/historical/currency_history.csv")
         print(f"Downloaded files: {importer.download_dir}")
         print()
         print("Data has been saved to:")

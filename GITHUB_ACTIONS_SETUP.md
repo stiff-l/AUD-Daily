@@ -6,7 +6,7 @@ This repository uses GitHub Actions to automatically collect commodity and forex
 
 The workflow (`/.github/workflows/daily_update.yml`) automatically:
 
-1. **Collects Commodity Data** - Scrapes prices for Gold, Silver, Copper, Aluminium, Zinc, Nickel
+1. **Collects Commodity Data** - Scrapes prices for Gold, Silver, Copper, Aluminium, Nickel
 2. **Collects Forex Data** - Fetches AUD exchange rates for USD, EUR, CNY, SGD, JPY
 3. **Generates HTML** - Creates HTML visualizations for both commodities and forex
 4. **Generates JPEG** - Converts HTML to JPEG images

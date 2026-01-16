@@ -21,9 +21,9 @@ import time
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.data_collector import collect_historical_data_for_date
-from src.data_storage import save_raw_data, save_daily_data, save_to_currency_table
-from src.data_formatter import standardize_data
+from src.currency_collector import collect_historical_data_for_date
+from src.currency_storage import save_raw_data, save_daily_data, save_to_currency_table
+from src.currency_formatter import standardize_data
 
 
 def get_existing_dates(data_dir: str, file_prefix: str) -> set:
@@ -31,7 +31,7 @@ def get_existing_dates(data_dir: str, file_prefix: str) -> set:
     Get set of dates that already have data files.
     
     Args:
-        data_dir: Directory to check (e.g., "data/raw" or "data/processed")
+        data_dir: Directory to check (e.g., "data/forex_data/raw" or "data/forex_data/processed")
         file_prefix: Prefix of files to check (e.g., "aud_data_" or "aud_daily_")
         
     Returns:
@@ -98,11 +98,11 @@ def get_missed_dates(start_date: str, end_date: str,
     existing_dates = set()
     
     if check_raw:
-        raw_dates = get_existing_dates("data/raw", "aud_data_")
+        raw_dates = get_existing_dates("data/forex_data/raw", "aud_data_")
         existing_dates.update(raw_dates)
     
     if check_processed:
-        processed_dates = get_existing_dates("data/processed", "aud_daily_")
+        processed_dates = get_existing_dates("data/forex_data/processed", "aud_daily_")
         existing_dates.update(processed_dates)
     
     # Find missed dates
@@ -139,14 +139,14 @@ def collect_data_for_date(date: str, save_raw: bool = True,
         
         # Save raw data
         if save_raw:
-            save_raw_data(raw_data, output_dir="data/raw")
+            save_raw_data(raw_data, output_dir="data/forex_data/raw")
         
         # Standardize and save processed data
         if save_processed or save_csv:
             standardized_data = standardize_data(raw_data)
             
             if save_processed:
-                save_daily_data(standardized_data, output_dir="data/processed")
+                save_daily_data(standardized_data, output_dir="data/forex_data/processed")
             
             if save_csv:
                 try:

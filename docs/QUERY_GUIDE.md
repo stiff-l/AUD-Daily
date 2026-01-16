@@ -16,7 +16,7 @@ python scripts/query_rba_data.py --list-currencies
 
 ## Querying the SQLite Database
 
-The SQLite database (`data/historical/rba_forex_data.db`) contains **all currencies** from RBA (35 currencies total).
+The SQLite database (`data/forex_data/historical/rba_forex_data.db`) contains **all currencies** from RBA (35 currencies total).
 
 ### Query a Specific Rate
 ```bash
@@ -43,8 +43,8 @@ python scripts/query_rba_data.py --range 2023-01-01 2023-12-31 EUR
 
 There are two CSV files available:
 
-1. **Daily CSV** (`data/processed/currency_daily.csv`) - Updated daily by `daily_update.py`
-2. **Historical CSV** (`data/historical/currency_history.csv`) - Static historical data exported from RBA database
+1. **Daily CSV** (`data/forex_data/processed/currency_daily.csv`) - Updated daily by `daily_update.py`
+2. **Historical CSV** (`data/forex_data/historical/currency_history.csv`) - Static historical data exported from RBA database
 
 Both contain **USD, EUR, CNY, SGD** in the standard format.
 
@@ -99,10 +99,10 @@ from src.currency_history import load_currency_history_csv
 import pandas as pd
 
 # Load the daily CSV
-df_daily = load_currency_history_csv('data/processed/currency_daily.csv')
+df_daily = load_currency_history_csv('data/forex_data/processed/currency_daily.csv')
 
 # Load the historical CSV
-df_historical = load_currency_history_csv('data/historical/currency_history.csv')
+df_historical = load_currency_history_csv('data/forex_data/historical/currency_history.csv')
 
 # Filter by date
 date = pd.to_datetime('2023-01-03').date()

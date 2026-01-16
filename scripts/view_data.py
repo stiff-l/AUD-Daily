@@ -13,8 +13,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.data_storage import load_data, load_latest_data
-from src.data_formatter import (
+from src.currency_storage import load_data, load_latest_data
+from src.currency_formatter import (
     standardize_data,
     format_table,
     format_summary,
@@ -24,7 +24,7 @@ from src.data_formatter import (
 )
 
 
-def list_available_dates(data_dir: str = "data/processed") -> list:
+def list_available_dates(data_dir: str = "data/forex_data/processed") -> list:
     """List all available dates with data files."""
     if not os.path.exists(data_dir):
         return []
@@ -79,7 +79,7 @@ def main():
                 print(f"  {date_str} - {filepath}")
             print()
         else:
-            print("No data files found in data/processed/")
+            print("No data files found in data/forex_data/processed/")
         return
     
     # Load data
@@ -97,7 +97,7 @@ def main():
         if not re.match(r'^\d{4}-\d{2}-\d{2}$', args.date):
             print(f"Error: Invalid date format. Expected YYYY-MM-DD, got: {args.date}")
             return
-        filepath = os.path.join("data/processed", f"aud_daily_{args.date}.json")
+        filepath = os.path.join("data/forex_data/processed", f"aud_daily_{args.date}.json")
         data = load_data(filepath)
         if not data:
             print(f"Error: No data found for date {args.date}")

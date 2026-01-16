@@ -10,10 +10,14 @@ on:
 jobs:
   collect_data:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,24 +39,11 @@ jobs:
         mkdir -p data/forex_data/HTML data/forex_data/JPEG data/forex_data/raw data/forex_data/processed
         mkdir -p data/commodities_data/HTML data/commodities_data/JPEG data/commodities_data/raw data/commodities_data/processed
     
-    - name: Collect Commodity Data
+    - name: Collect All Data (Forex + Commodities)
+      working-directory: ${{ github.workspace }}
       run: |
-        python3 scripts/Mineral_Commodities_Data_Collection/daily_update.py
-      continue-on-error: true
-    
-    - name: Collect Forex Data
-      run: |
-        python3 scripts/Forex_Data_Collection/daily_update.py
-      continue-on-error: true
-    
-    - name: Generate Commodities HTML and JPEG
-      run: |
-        python3 scripts/generate_mineral_commodities_html.py
-      continue-on-error: true
-    
-    - name: Generate Forex HTML and JPEG
-      run: |
-        python3 scripts/generate_forex_html.py
+        export PYTHONPATH="${{ github.workspace }}:$PYTHONPATH"
+        python3 scripts/daily_update_all.py
       continue-on-error: true
     
     - name: Commit and push data
@@ -65,6 +56,4 @@ jobs:
         git add data/forex_data/processed/currency_daily.csv || true
         git add data/commodities_data/processed/commodity_daily.csv || true
         git diff --staged --quiet || git commit -m "Auto-update: Daily data collection $(date +'%Y-%m-%d %H:%M:%S UTC')"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git push origin HEAD:main

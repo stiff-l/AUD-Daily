@@ -31,9 +31,10 @@ The project structure is already set up, but here's what each folder does:
 
 - **`src/`** - Your Python code files
 - **`data/`** - Where collected data is stored
-  - `raw/` - Raw data files with timestamps (JSON)
-  - `processed/` - Daily data files (JSON) and daily currency CSV
-  - `historical/` - Historical RBA database and CSV (static, manually updated)
+  - `forex_data/` - Forex data storage
+    - `raw/` - Raw data files with timestamps (JSON)
+    - `processed/` - Daily data files (JSON) and daily currency CSV
+    - `historical/` - Historical RBA database and CSV (static, manually updated)
 - **`config/`** - Configuration files (API keys, settings)
 - **`scripts/`** - Scripts to run tasks
 - **`docs/`** - Documentation
@@ -92,7 +93,7 @@ This installs:
 
 1. Run the data collector to test:
    ```bash
-   python src/data_collector.py
+   python src/currency_collector.py
    ```
 
    This should fetch some data and print it to the console.
@@ -104,14 +105,14 @@ This installs:
 
    This will:
    - Collect currency data (USD, EUR, CNY, SGD)
-   - Save raw data to `data/raw/` (JSON with timestamp)
-   - Save processed data to `data/processed/` (JSON by date)
-   - Save to daily currency table `data/processed/currency_daily.csv`
+   - Save raw data to `data/forex_data/raw/` (JSON with timestamp)
+   - Save processed data to `data/forex_data/processed/` (JSON by date)
+   - Save to daily currency table `data/forex_data/processed/currency_daily.csv`
 
 3. Check that files were created:
    ```bash
-   ls data/raw/
-   ls data/processed/
+   ls data/forex_data/raw/
+   ls data/forex_data/processed/
    ```
 
 ### Step 7: Set Up Daily Automation (Optional)
@@ -135,11 +136,11 @@ See `docs/SCHEDULING_GUIDE.md` for more detailed scheduling instructions.
 
 ## Understanding the Code
 
-### `src/data_collector.py`
+### `src/currency_collector.py`
 - Fetches currency data from APIs
 - Function: `fetch_currency_rates()` - Gets USD, EUR, CNY, SGD rates
 
-### `src/data_storage.py`
+### `src/currency_storage.py`
 - Saves and loads data files
 - Functions: `save_raw_data()`, `save_daily_data()`, `save_to_currency_table()`
 
@@ -155,10 +156,10 @@ See `docs/SCHEDULING_GUIDE.md` for more detailed scheduling instructions.
 ## Next Steps
 
 1. **View your data**: Use `python scripts/view_data.py` to see collected data
-2. **Analyze trends**: Open `data/processed/currency_daily.csv` in Excel or a data analysis tool
+2. **Analyze trends**: Open `data/forex_data/processed/currency_daily.csv` in Excel or a data analysis tool
 3. **Query historical data**: Use `python scripts/query_rba_data.py` to query the RBA historical database
 3. **Collect historical data**: Run `python scripts/collect_historical_data.py` to get quarterly data since 1966
-4. **Customize**: Edit `src/data_collector.py` to add more currencies if needed
+4. **Customize**: Edit `src/currency_collector.py` to add more currencies if needed
 
 ## Getting Help
 

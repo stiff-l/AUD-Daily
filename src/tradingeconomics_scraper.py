@@ -3,7 +3,7 @@ TradingEconomics Scraper Module
 
 This module handles scraping commodity prices from TradingEconomics.com
 using CloudScraper (with Selenium fallback) to bypass anti-bot protection.
-Tracks: Gold, Silver, Copper, Aluminium, Zinc, Nickel
+Tracks: Gold, Silver, Copper, Aluminium, Nickel
 """
 
 import re
@@ -210,7 +210,6 @@ def extract_price_from_html(html: str, commodity_name: str) -> Optional[float]:
         'copper': (3, 15000),      # Copper: $3-$5/lb (displayed) or $5000-$15000/mt - accept wider range
         'aluminum': (1000, 5000),  # Aluminum typically $1000-$5000/mt
         'aluminium': (1000, 5000), # Aluminium (UK spelling)
-        'zinc': (2000, 5000),      # Zinc typically $2000-$5000/mt
         'nickel': (10000, 30000),  # Nickel typically $10000-$30000/mt
     }
     
@@ -483,7 +482,6 @@ def scrape_all_commodities() -> Dict[str, Any]:
         "SILVER": "https://tradingeconomics.com/commodity/silver",
         "COPPER": "https://tradingeconomics.com/commodity/copper",
         "ALUMINIUM": "https://tradingeconomics.com/commodity/aluminum",
-        "ZINC": "https://tradingeconomics.com/commodity/zinc",
         "NICKEL": "https://tradingeconomics.com/commodity/nickel",
     }
     

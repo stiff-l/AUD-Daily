@@ -13,8 +13,8 @@ import json
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.data_formatter import standardize_data
-from src.data_storage import load_data
+from src.currency_formatter import standardize_data
+from src.currency_storage import load_data
 
 
 def standardize_file(filepath: str, backup: bool = True) -> bool:
@@ -55,7 +55,7 @@ def standardize_file(filepath: str, backup: bool = True) -> bool:
 
 def main():
     """Standardize all existing data files."""
-    processed_dir = "data/processed"
+    processed_dir = "data/forex_data/processed"
     
     if not os.path.exists(processed_dir):
         print(f"Directory not found: {processed_dir}")

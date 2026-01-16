@@ -33,8 +33,8 @@ CRYPTO_SOURCES = {
 
 # Data Storage Settings
 DATA_DIR = "data"
-RAW_DATA_DIR = "data/raw"
-PROCESSED_DATA_DIR = "data/processed"
+RAW_DATA_DIR = "data/forex_data/raw"
+PROCESSED_DATA_DIR = "data/forex_data/processed"
 EXPORT_DIR = "data/exports"
 
 # Update Schedule

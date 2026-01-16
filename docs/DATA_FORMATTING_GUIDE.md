@@ -4,7 +4,7 @@ This guide explains how to view and format your AUD Daily Tracker data.
 
 ## Standardized Data Format
 
-All JSON files in `data/processed/` now use a standardized format:
+All JSON files in `data/forex_data/processed/` now use a standardized format:
 
 ```json
 {
@@ -109,7 +109,7 @@ This will:
 
 ## Customizing Output
 
-You can customize the output by editing `src/data_formatter.py`:
+You can customize the output by editing `src/currency_formatter.py`:
 
 - **`format_table()`** - Modify table layout and columns
 - **`format_summary()`** - Change summary style
@@ -117,7 +117,7 @@ You can customize the output by editing `src/data_formatter.py`:
 
 ### Example: Adding a Custom Format
 
-Edit `src/data_formatter.py` and add to `format_custom()`:
+Edit `src/currency_formatter.py` and add to `format_custom()`:
 
 ```python
 elif template == "my_custom":
@@ -136,8 +136,8 @@ python scripts/view_data.py --format my_custom
 You can also use the formatter in your own scripts:
 
 ```python
-from src.data_storage import load_latest_data
-from src.data_formatter import standardize_data, format_table
+from src.currency_storage import load_latest_data
+from src.currency_formatter import standardize_data, format_table
 
 # Load and standardize data
 data = load_latest_data()

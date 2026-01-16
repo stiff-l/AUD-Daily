@@ -2,7 +2,7 @@
 Commodity Collector Module
 
 This module handles fetching mineral commodity prices from TradingEconomics.com.
-Tracks: Gold, Silver, Copper, Aluminium, Zinc, Nickel in AUD.
+Tracks: Gold, Silver, Copper, Aluminium, Nickel in AUD.
 """
 
 import json
@@ -22,21 +22,27 @@ except ImportError:
         from src.tradingeconomics_scraper import scrape_all_commodities
     except ImportError:
         # Fallback - import from same directory
-        import importlib.util
         scraper_path = os.path.join(os.path.dirname(__file__), "tradingeconomics_scraper.py")
-        if os.path.exists(scraper_path):
-            spec = importlib.util.spec_from_file_location("tradingeconomics_scraper", scraper_path)
-            tradingeconomics_scraper = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(tradingeconomics_scraper)
-            scrape_all_commodities = tradingeconomics_scraper.scrape_all_commodities
+        try:
+            from .import_utils import safe_import_module, get_module_attribute
+        except ImportError:
+            from src.import_utils import safe_import_module, get_module_attribute
+        
+        tradingeconomics_module = safe_import_module(
+            "tradingeconomics_scraper",
+            package_name="src",
+            fallback_path=scraper_path
+        )
+        if tradingeconomics_module:
+            scrape_all_commodities = get_module_attribute(tradingeconomics_module, "scrape_all_commodities")
         else:
-            raise ImportError(f"Could not find tradingeconomics_scraper.py at {scraper_path}")
+            raise ImportError(f"Could not import tradingeconomics_scraper from any location")
 
 
 def fetch_commodity_prices() -> Dict[str, Any]:
     """
     Fetch mineral commodity prices in AUD from TradingEconomics.
-    Tracks: Gold, Silver, Copper, Aluminium, Zinc, Nickel.
+    Tracks: Gold, Silver, Copper, Aluminium, Nickel.
     
     Returns:
         Dictionary with commodity prices and metadata
@@ -47,7 +53,7 @@ def fetch_commodity_prices() -> Dict[str, Any]:
 
 def collect_all_commodity_data() -> Dict[str, Any]:
     """
-    Collect all commodity data (Gold, Silver, Copper, Aluminium, Zinc, Nickel).
+    Collect all commodity data (Gold, Silver, Copper, Aluminium, Nickel).
     
     Returns:
         Dataset with commodity prices
