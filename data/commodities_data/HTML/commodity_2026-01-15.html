@@ -105,7 +105,7 @@
             height: 100%;
             position: relative;
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             grid-template-rows: 2fr 1fr;
             gap: 0;
         }
@@ -123,11 +123,11 @@
             min-height: 0;
         }
 
-        .table-cell:nth-child(6n) {
+        .table-cell:nth-child(5n) {
             border-right: none;
         }
 
-        .table-cell:nth-child(n+7) {
+        .table-cell:nth-child(n+6) {
             border-bottom: none;
         }
 
@@ -233,31 +233,41 @@
             <div class="table-grid">
                 <!-- First row: Commodity rates -->
                 <div class="table-cell">
-                    <div class="commodity-code">4,697.60</div>
+                    <div class="commodity-code">N/A</div>
                     
                 </div>
                 <div class="table-cell">
-                    <div class="commodity-code">70.36</div>
-                    
+                    <div class="commodity-code">19,571.76</div>
+                    <div class="commodity-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="commodity-code">28,255.99</div>
-                    
+                    <div class="commodity-code">6,892.08</div>
+                    <div class="commodity-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="commodity-code">7,485.03</div>
-                    
+                    <div class="commodity-code">137.95</div>
+                    <div class="commodity-arrow arrow-down"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="commodity-code">4,491.02</div>
-                    
-                </div>
-                <div class="table-cell">
-                    <div class="commodity-code">5,538.92</div>
+                    <div class="commodity-code">N/A</div>
                     
                 </div>
                 
                 <!-- Second row: Commodity units -->
+                <div class="table-cell">
+                    <div class="commodity-unit">
+                        <div>Aluminium</div>
+                        <div class="commodity-flag">🔩</div>
+                        <div class="unit-label">AU$/mt</div>
+                    </div>
+                </div>
+                <div class="table-cell">
+                    <div class="commodity-unit">
+                        <div>Copper</div>
+                        <div class="commodity-flag">🔶</div>
+                        <div class="unit-label">AU$/mt</div>
+                    </div>
+                </div>
                 <div class="table-cell">
                     <div class="commodity-unit">
                         <div>Gold</div>
@@ -276,27 +286,6 @@
                     <div class="commodity-unit">
                         <div>Nickel</div>
                         <div class="commodity-flag">🔋</div>
-                        <div class="unit-label">AU$/mt</div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <div class="commodity-unit">
-                        <div>Copper</div>
-                        <div class="commodity-flag">🔶</div>
-                        <div class="unit-label">AU$/mt</div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <div class="commodity-unit">
-                        <div>Aluminium</div>
-                        <div class="commodity-flag">🔩</div>
-                        <div class="unit-label">AU$/mt</div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <div class="commodity-unit">
-                        <div>Zinc</div>
-                        <div class="commodity-flag">⚙️</div>
                         <div class="unit-label">AU$/mt</div>
                     </div>
                 </div>

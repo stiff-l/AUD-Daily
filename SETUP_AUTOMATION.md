@@ -112,8 +112,9 @@ If you prefer cron instead of launchd:
 
 ### Network issues
 
-- The script requires internet access to scrape TradingEconomics
+- The script requires internet access to fetch data from Metals.Dev API
 - Make sure your computer is connected to the internet at 5pm AEST
+- Ensure METALS_DEV_API_KEY is configured in config/settings.py
 
 ## Notes
 

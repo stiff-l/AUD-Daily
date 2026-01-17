@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0, minimum-scale=0.5">
-    <title>THE AUD TRACKER - {{FULL_DATE}}</title>
+    <title>THE DAILY AUD - January 06, 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #634bff;
+            background-color: #4caf50;
             color: #ffffff;
             position: relative;
             width: 1080px;
@@ -131,14 +131,14 @@
             border-bottom: none;
         }
 
-        .currency-code {
-            font-size: 42px;
+        .commodity-code {
+            font-size: 32px;
             font-weight: 700;
-            line-height: 50px;
+            line-height: 38px;
             color: #ffffff;
             text-align: center;
             width: 100%;
-            height: 50px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -148,7 +148,7 @@
             margin-top: 50px;
         }
 
-        .currency-arrow {
+        .commodity-arrow {
             width: 220px;
             height: 220px;
             margin-top: -16px;
@@ -158,7 +158,7 @@
             flex-shrink: 0;
         }
 
-        .currency-arrow svg {
+        .commodity-arrow svg {
             width: 100%;
             height: 100%;
         }
@@ -177,7 +177,7 @@
             color: #ffffff;
             fill: #ffffff;
         }
-        .currency-unit {
+        .commodity-unit {
             font-size: 24px;
             font-weight: 700;
             line-height: 29px;
@@ -193,7 +193,13 @@
             gap: 8px;
         }
 
-        .currency-flag {
+        .commodity-unit .unit-label {
+            font-weight: 300;
+            font-size: 18px;
+            line-height: 22px;
+        }
+
+        .commodity-flag {
             font-size: 40px;
             line-height: 40px;
             height: 40px;
@@ -202,24 +208,8 @@
             justify-content: center;
         }
 
-        .yuan-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .yuan-symbol {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            vertical-align: middle;
-        }
-
         /* Prevent layout shift - reserve space for dynamic content */
-        .currency-code:empty::before {
+        .commodity-code:empty::before {
             content: '\00a0';
         }
 
@@ -231,74 +221,72 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">THE AUD TRACKER</div>
+            <div class="title">THE DAILY AUD</div>
             <div class="subtitle">Daily Finance Updates - Tracking AUD</div>
         </div>
         
-        <div class="date">{{FULL_DATE}}</div>
+        <div class="date">January 06, 2026</div>
         
-        <div class="forex-header">FOREX</div>
+        <div class="forex-header">MINERAL COMMODITIES</div>
         
         <div class="table-container">
             <div class="table-grid">
-                <!-- First row: Currency rates -->
+                <!-- First row: Commodity rates -->
                 <div class="table-cell">
-                    <div class="currency-code">{{USD_RATE}}</div>
-                    {{USD_ARROW}}
+                    <div class="commodity-code">N/A</div>
+                    
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{EUR_RATE}}</div>
-                    {{EUR_ARROW}}
+                    <div class="commodity-code">19,777.42</div>
+                    <div class="commodity-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{JPY_RATE}}</div>
-                    {{JPY_ARROW}}
+                    <div class="commodity-code">6,673.85</div>
+                    <div class="commodity-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{CNY_RATE}}</div>
-                    {{CNY_ARROW}}
+                    <div class="commodity-code">120.64</div>
+                    <div class="commodity-arrow arrow-up"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14L12 9L17 14H7Z" fill="currentColor"/></svg></div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-code">{{SGD_RATE}}</div>
-                    {{SGD_ARROW}}
+                    <div class="commodity-code">N/A</div>
+                    
                 </div>
                 
-                <!-- Second row: Currency units -->
+                <!-- Second row: Commodity units -->
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>$ Cents</div>
-                        <div class="currency-flag">🇺🇸</div>
+                    <div class="commodity-unit">
+                        <div>Aluminium</div>
+                        <div class="commodity-flag">🔩</div>
+                        <div class="unit-label">AU$/mt</div>
                     </div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>€ Cents</div>
-                        <div class="currency-flag">🇪🇺</div>
+                    <div class="commodity-unit">
+                        <div>Copper</div>
+                        <div class="commodity-flag">🔶</div>
+                        <div class="unit-label">AU$/mt</div>
                     </div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>¥ Yen</div>
-                        <div class="currency-flag">🇯🇵</div>
+                    <div class="commodity-unit">
+                        <div>Gold</div>
+                        <div class="commodity-flag">🥇</div>
+                        <div class="unit-label">AU$/oz</div>
                     </div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>
-                            <span class="yuan-container">
-                                <svg class="yuan-symbol" viewBox="0 -738 1000 738" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M427 0H573V-154H767V-228H573V-293H767V-367H605L841-738H671L581-558C546-485 533-456 504-402H499C472-456 459-482 422-558L331-738H158L393-367H232V-293H427V-228H232V-154H427V0Z"/>
-                                </svg>
-                                <span>Yuan</span>
-                            </span>
-                        </div>
-                        <div class="currency-flag">🇨🇳</div>
+                    <div class="commodity-unit">
+                        <div>Silver</div>
+                        <div class="commodity-flag">🥈</div>
+                        <div class="unit-label">AU$/oz</div>
                     </div>
                 </div>
                 <div class="table-cell">
-                    <div class="currency-unit">
-                        <div>S$ Cents</div>
-                        <div class="currency-flag">🇸🇬</div>
+                    <div class="commodity-unit">
+                        <div>Nickel</div>
+                        <div class="commodity-flag">🔋</div>
+                        <div class="unit-label">AU$/mt</div>
                     </div>
                 </div>
             </div>

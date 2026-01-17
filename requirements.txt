@@ -22,7 +22,5 @@ selenium>=4.15.0
 playwright>=1.40.0  # Fallback option
 Pillow>=10.0.0  # For PNG to JPEG conversion
 
-# Web scraping (TradingEconomics)
-cloudscraper>=1.2.71
-beautifulsoup4>=4.12.0
-
+# Financial data (for base metals prices)
+yfinance>=0.2.28

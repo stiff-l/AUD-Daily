@@ -11,14 +11,20 @@ jobs:
   collect_data:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write  # Required for committing and pushing changes
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for proper git operations
     
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
+        cache: 'pip'  # Cache pip dependencies for faster runs
     
     - name: Install Python dependencies
       run: |
@@ -27,31 +33,48 @@ jobs:
     
     - name: Install Playwright browsers and dependencies
       run: |
-        playwright install chromium
         playwright install --with-deps chromium
     
     - name: Create data directories
       run: |
-        mkdir -p data/forex_data/HTML data/forex_data/JPEG data/forex_data/raw data/forex_data/processed
-        mkdir -p data/commodities_data/HTML data/commodities_data/JPEG data/commodities_data/raw data/commodities_data/processed
+        mkdir -p data/forex_data/HTML data/forex_data/JPEG
+        mkdir -p data/commodities_data/HTML data/commodities_data/JPEG
+        mkdir -p data/forex_data/processed data/commodities_data/processed
     
     - name: Collect All Data (Forex + Commodities)
-      working-directory: ${{ github.workspace }}
+      env:
+        PYTHONPATH: ${{ github.workspace }}
       run: |
-        export PYTHONPATH="${{ github.workspace }}:$PYTHONPATH"
         python3 scripts/daily_update_all.py
-      continue-on-error: true
+      continue-on-error: false  # Fail if data collection fails
     
-    - name: Commit and push data
+    - name: Configure Git
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        # Add HTML and JPEG files (raw/processed JSON are in .gitignore)
+    
+    - name: Check for changes
+      id: check_changes
+      run: |
         git add data/forex_data/HTML/ data/forex_data/JPEG/ || true
         git add data/commodities_data/HTML/ data/commodities_data/JPEG/ || true
         git add data/forex_data/processed/currency_daily.csv || true
         git add data/commodities_data/processed/commodity_daily.csv || true
-        git diff --staged --quiet || git commit -m "Auto-update: Daily data collection $(date +'%Y-%m-%d %H:%M:%S UTC')"
-        git push
+        if git diff --staged --quiet; then
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Commit and push changes
+      if: steps.check_changes.outputs.has_changes == 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git commit -m "Auto-update: Daily data collection $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        git push
+    
+    - name: Report no changes
+      if: steps.check_changes.outputs.has_changes == 'false'
+      run: |
+        echo "No changes to commit. Data may already be up to date."

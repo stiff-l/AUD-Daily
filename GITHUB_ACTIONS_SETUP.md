@@ -93,4 +93,4 @@ After the workflow runs:
 - The workflow runs even if your computer is off
 - It uses GitHub's free tier (unlimited for public repos)
 - Each run takes approximately 2-5 minutes
-- Data is collected from TradingEconomics (commodities) and exchange rate APIs (forex)
+- Data is collected from Metals.Dev API (commodities) and exchange rate APIs (forex)
