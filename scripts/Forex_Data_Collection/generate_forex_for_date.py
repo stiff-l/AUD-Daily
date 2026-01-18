@@ -10,12 +10,14 @@ import sys
 import os
 from datetime import datetime
 
-# Add src directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add project root to path
+project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+sys.path.insert(0, os.path.abspath(project_root))
 
 from scripts.generate_forex_html import generate_forex_html
 from src.currency_collector import collect_historical_data_for_date
 from src.currency_formatter import standardize_data
+from src.currency_storage import save_daily_data, save_to_currency_table
 from src.rba_historical_importer import RBAForexImporter
 
 
@@ -91,6 +93,14 @@ def main():
         sys.exit(1)
     
     print(f'Data collected for currencies: {list(standardized.get("currencies", {}).keys())}')
+    
+    # Save processed data (date-based JSON file)
+    print("Saving processed data...")
+    save_daily_data(standardized, output_dir="data/forex_data/processed")
+    
+    # Save to currency history table (CSV)
+    print("Updating currency history table (CSV)...")
+    save_to_currency_table(standardized)
     
     # Generate the output - always use HTML template
     template_path = 'templates/forex_template.html'

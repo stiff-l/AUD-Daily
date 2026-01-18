@@ -18,7 +18,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from src.currency_collector import fetch_currency_rates
 from src.currency_formatter import standardize_data
 from src.currency_history import load_currency_history_csv
-from src.currency_storage import save_raw_data, save_daily_data, save_to_currency_table
 import pandas as pd
 
 # Import HTML utilities
@@ -157,8 +156,13 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     # Preserve the date from input data if it exists (for historical dates)
     preserved_date = data.get("date") if isinstance(data, dict) else None
     
-    # Standardize data if needed
-    standardized = standardize_data(data)
+    # Check if data is already standardized (has "currencies" key with proper structure)
+    if isinstance(data, dict) and "currencies" in data and isinstance(data["currencies"], dict):
+        # Data is already standardized, use it directly
+        standardized = data.copy()
+    else:
+        # Data needs standardization
+        standardized = standardize_data(data)
     
     # Use preserved date if available, otherwise use standardized date, otherwise today
     date_str = preserved_date or standardized.get("date") or datetime.now().strftime("%Y-%m-%d")
@@ -244,7 +248,6 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
         template_content = f.read()
     
     # Use provided data or fetch fresh data
-    raw_data = None
     if standardized_data is None:
         print("Fetching daily forex rates...")
         data = fetch_all_currency_rates()
@@ -257,43 +260,8 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
         standardized_data = standardize_data(raw_data)
     else:
         print("Using provided forex data...")
-        # If standardized_data is provided, we still need raw_data for saving
-        # Create a raw_data structure from standardized_data
-        raw_data = {
-            "collection_date": standardized_data.get("timestamp", datetime.now().isoformat()),
-            "currencies": {
-                "timestamp": standardized_data.get("timestamp", datetime.now().isoformat()),
-                "currencies": standardized_data.get("currencies", {})
-            }
-        }
-    
-    # Save raw and processed data, and update CSVs
-    try:
-        print("\nSaving data files...")
-        # Determine base directory for data storage
-        # If output_dir is "data/forex_data", use it directly; otherwise construct path
-        if "forex_data" in output_dir:
-            base_data_dir = output_dir
-        else:
-            base_data_dir = "data/forex_data"
-        
-        # Save raw data (with timestamp)
-        if raw_data:
-            raw_output_dir = os.path.join(base_data_dir, "raw")
-            save_raw_data(raw_data, output_dir=raw_output_dir)
-        
-        # Save daily data (date-based filename, overwrites if exists)
-        processed_output_dir = os.path.join(base_data_dir, "processed")
-        save_daily_data(standardized_data, output_dir=processed_output_dir)
-        
-        # Save to currency history table (CSV)
-        save_to_currency_table(standardized_data)
-        print("✓ Data files saved successfully")
-    except Exception as e:
-        print(f"⚠ Warning: Error saving data files: {e}")
-        # Don't fail HTML generation if data saving fails
-        import traceback
-        traceback.print_exc()
+        # Note: Data saving is handled by the calling script (daily_update.py)
+        # This function only generates HTML/JPEG from the provided standardized_data
     
     # Check if template has arrow placeholders by looking for ARROW placeholders in the content
     is_arrow_template = any(f"{{{{{currency}_ARROW}}}}" in template_content or 

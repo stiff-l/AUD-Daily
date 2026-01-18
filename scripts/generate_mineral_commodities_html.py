@@ -145,8 +145,13 @@ def replace_html_placeholders(html_content, data, include_arrows=False):
     # Preserve the date from input data if it exists (for historical dates)
     preserved_date = data.get("date") if isinstance(data, dict) else None
     
-    # Standardize data if needed
-    standardized = standardize_commodity_data(data)
+    # Check if data is already standardized (has "commodities" key with proper structure)
+    if isinstance(data, dict) and "commodities" in data and isinstance(data["commodities"], dict):
+        # Data is already standardized, use it directly
+        standardized = data.copy()
+    else:
+        # Data needs standardization
+        standardized = standardize_commodity_data(data)
     
     # Use preserved date if available, otherwise use standardized date, otherwise today
     date_str = preserved_date or standardized.get("date") or datetime.now().strftime("%Y-%m-%d")
