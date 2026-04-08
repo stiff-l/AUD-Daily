@@ -20,15 +20,17 @@ from scripts.html_utils import html_to_jpeg
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+JPEG_DIR = os.path.join(BASE_DIR, "data", "JPEG")
+
 SCAN_DIRS = [
     {
         "html_dir": os.path.join(BASE_DIR, "data", "forex_data", "HTML"),
-        "jpeg_dir": os.path.join(BASE_DIR, "data", "forex_data", "JPEG"),
+        "jpeg_dir": JPEG_DIR,
         "label": "Forex",
     },
     {
         "html_dir": os.path.join(BASE_DIR, "data", "commodities_data", "HTML"),
-        "jpeg_dir": os.path.join(BASE_DIR, "data", "commodities_data", "JPEG"),
+        "jpeg_dir": JPEG_DIR,
         "label": "Commodities",
     },
 ]

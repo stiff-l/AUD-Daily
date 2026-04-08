@@ -37,8 +37,8 @@ jobs:
     
     - name: Create data directories
       run: |
-        mkdir -p data/forex_data/HTML data/forex_data/JPEG
-        mkdir -p data/commodities_data/HTML data/commodities_data/JPEG
+        mkdir -p data/forex_data/HTML data/commodities_data/HTML
+        mkdir -p data/JPEG
         mkdir -p data/forex_data/processed data/commodities_data/processed
     
     - name: Collect Forex Data
@@ -63,8 +63,8 @@ jobs:
     - name: Check for changes
       id: check_changes
       run: |
-        git add data/forex_data/HTML/ data/forex_data/JPEG/ || true
-        git add data/commodities_data/HTML/ data/commodities_data/JPEG/ || true
+        git add data/forex_data/HTML/ data/commodities_data/HTML/ || true
+        git add data/JPEG/ || true
         git add data/forex_data/processed/currency_daily.csv || true
         git add data/commodities_data/processed/commodity_daily.csv || true
         if git diff --staged --quiet; then

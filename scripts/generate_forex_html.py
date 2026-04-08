@@ -280,7 +280,7 @@ def generate_forex_html(template_path, output_dir="data/forex_data", standardize
     
     # Create output subdirectories
     html_dir = os.path.join(output_dir, "HTML")
-    jpeg_dir = os.path.join(output_dir, "JPEG")
+    jpeg_dir = os.path.join(os.path.dirname(os.path.normpath(output_dir)), "JPEG")
     Path(html_dir).mkdir(parents=True, exist_ok=True)
     Path(jpeg_dir).mkdir(parents=True, exist_ok=True)
     
