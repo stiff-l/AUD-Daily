@@ -41,12 +41,19 @@ jobs:
         mkdir -p data/commodities_data/HTML data/commodities_data/JPEG
         mkdir -p data/forex_data/processed data/commodities_data/processed
     
-    - name: Collect All Data (Forex + Commodities)
+    - name: Collect Forex Data
+      continue-on-error: true
       env:
         PYTHONPATH: ${{ github.workspace }}
       run: |
-        python3 scripts/daily_update_all.py
-      continue-on-error: false  # Fail if data collection fails
+        python3 scripts/Forex_Data_Collection/daily_update.py
+
+    - name: Collect Commodities Data
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+        METALS_DEV_API_KEY: ${{ secrets.METALS_DEV_API_KEY }}
+      run: |
+        python3 scripts/Mineral_Commodities_Data_Collection/daily_update.py
     
     - name: Configure Git
       run: |
