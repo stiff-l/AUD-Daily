@@ -76,57 +76,27 @@ def html_to_jpeg_playwright(html_path: str, jpeg_path: str, width: int = 1080, h
     html_abs_path = os.path.abspath(html_path)
     html_file_url = f"file://{html_abs_path.replace(os.sep, '/')}"
     
-    try:
-        print("  Using Playwright with Chromium...")
-        with sync_playwright() as p:
-            # Launch Chromium browser (more stable on macOS than Firefox Nightly)
-            try:
+    MAX_RETRIES = 2
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            print(f"  Using Playwright with Chromium (attempt {attempt}/{MAX_RETRIES})...")
+            with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
-            except Exception as launch_error:
-                print(f"    Chromium launch failed: {launch_error}")
-                print("    Make sure Chromium is installed: python3 -m playwright install chromium")
-                return None
-            
-            try:
-                # Create context with viewport
-                context = browser.new_context(
-                    viewport={'width': width, 'height': height}
-                )
+                context = browser.new_context(viewport={'width': width, 'height': height})
                 page = context.new_page()
-                
-                # Load HTML file with proper error handling
-                try:
-                    page.goto(html_file_url, wait_until='load', timeout=30000)
-                except Exception as nav_error:
-                    print(f"    Navigation error: {nav_error}")
-                    context.close()
-                    browser.close()
-                    return None
-                
-                # Wait for page to fully render
+                page.goto(html_file_url, wait_until='load', timeout=60000)
                 page.wait_for_timeout(1500)  # Give time for fonts/images to load
-                
-                # Take screenshot
-                page.screenshot(path=jpeg_path, type="jpeg", quality=95, full_page=True)
-                
+                page.screenshot(path=jpeg_path, type="jpeg", quality=95, full_page=True, timeout=60000)
                 context.close()
                 browser.close()
-                
                 print(f"✓ JPEG generated successfully with Playwright (Chromium): {jpeg_path}")
                 return jpeg_path
-                
-            except Exception as screenshot_error:
-                print(f"    Screenshot failed: {screenshot_error}")
-                try:
-                    context.close()
-                    browser.close()
-                except:
-                    pass
-                return None
-                    
-    except Exception as e:
-        print(f"    Playwright (Chromium) error: {e}")
-        return None
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                print(f"    Playwright attempt {attempt} failed, retrying... ({e})")
+            else:
+                print(f"    Playwright failed after {MAX_RETRIES} attempts: {e}")
+    return None
 
 
 def html_to_jpeg_selenium(html_path: str, jpeg_path: str, width: int = 1080, height: int = 1350) -> Optional[str]:

@@ -99,6 +99,9 @@ def get_previous_day_rates(current_date_str, csv_path="data/forex_data/processed
         if df is None or df.empty:
             return None
         
+        # Ensure date column is plain date objects (robust across environments)
+        df['date'] = pd.to_datetime(df['date']).dt.date
+        
         # Parse current date
         current_date = datetime.strptime(current_date_str, "%Y-%m-%d").date()
         

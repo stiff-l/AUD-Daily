@@ -53,14 +53,15 @@ def fetch_metals_dev_data() -> Optional[Dict[str, Any]]:
     """
     Fetch all commodity prices from Metals.Dev API in a single request.
     Requests prices directly in AUD to avoid currency conversion.
-    
+
     Returns:
         API response dictionary, or None if failed
     """
-    api_key = None
-    if settings and hasattr(settings, 'METALS_DEV_API_KEY'):
+    # Check env var first (GitHub Actions), fall back to settings.py (local)
+    api_key = os.environ.get("METALS_DEV_API_KEY")
+    if not api_key and settings and hasattr(settings, 'METALS_DEV_API_KEY'):
         api_key = settings.METALS_DEV_API_KEY
-    
+
     if not api_key or api_key == "your_metals_dev_api_key_here":
         print("Error: METALS_DEV_API_KEY not configured in config/settings.py")
         print("Please add your API key from https://metals.dev/dashboard")
@@ -196,18 +197,19 @@ def fetch_metals_dev_timeseries(start_date: str, end_date: str) -> Optional[Dict
     """
     Fetch commodity prices from Metals.Dev API timeseries endpoint for a date range.
     This is more efficient than making multiple API calls for different dates.
-    
+
     Args:
         start_date: Start date in YYYY-MM-DD format
         end_date: End date in YYYY-MM-DD format
-    
+
     Returns:
         API response dictionary with rates for each date, or None if failed
     """
-    api_key = None
-    if settings and hasattr(settings, 'METALS_DEV_API_KEY'):
+    # Check env var first (GitHub Actions), fall back to settings.py (local)
+    api_key = os.environ.get("METALS_DEV_API_KEY")
+    if not api_key and settings and hasattr(settings, 'METALS_DEV_API_KEY'):
         api_key = settings.METALS_DEV_API_KEY
-    
+
     if not api_key or api_key == "your_metals_dev_api_key_here":
         print("Error: METALS_DEV_API_KEY not configured in config/settings.py")
         print("Please add your API key from https://metals.dev/dashboard")
